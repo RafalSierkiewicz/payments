@@ -2,22 +2,10 @@
 
 .idea
 .bsp
-node_modules
-public
 target
 package-lock.json
 
-.postgresdb/
-!src/main/client/expenses/public
-src/main/client/expenses/public/*
-!src/main/client/expenses/package-lock.json
 
-src/main/client/expenses/node_modules
-src/main/client/expenses/.pnp
-src/main/client/expenses/.pnp.js
+src/main/client/expenses/node_modules/*
 src/main/client/expenses/.eslintcache
 src/main/client/expenses/coverage
-src/main/client/expenses/build
-src/main/client/expenses/npm-debug.log*
-src/main/client/expenses/yarn-debug.log*
-src/main/client/expenses/yarn-error.log*
