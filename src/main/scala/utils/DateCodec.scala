@@ -1,14 +1,10 @@
 package utils
-import java.util.Date
+import java.sql.Timestamp
 
 import io.circe.{Codec, Decoder, Encoder}
 
-
 object DateCodec {
-  implicit val dateCodec: Codec[Date] = {
-    Codec.from(
-      Decoder.decodeLong.map(new Date(_)),
-      Encoder.encodeLong.contramap[Date](_.getTime)
-    )
+  implicit val dateCodec: Codec[Timestamp] = {
+    Codec.from(Decoder.decodeLong.map(new Timestamp(_)), Encoder.encodeLong.contramap[Timestamp](_.getTime))
   }
 }

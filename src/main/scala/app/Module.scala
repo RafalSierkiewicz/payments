@@ -1,6 +1,6 @@
 package app
-import controllers.PaymentsController
+import controllers.ExpenseController
 
 trait Module[F[_]] {
-  def paymentsController: PaymentsController[F]
+  def expenseController: ExpenseController[F]
 }

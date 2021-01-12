@@ -1,6 +1,9 @@
 # IntealliJ
 
 .idea
+.metals
+.vscode
+.bloop
 .bsp
 target
 package-lock.json

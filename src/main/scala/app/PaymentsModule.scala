@@ -1,27 +1,31 @@
 package app
+import app.config.AppConfig
 import cats.effect.Sync
 import com.softwaremill.macwire.wire
-import controllers.PaymentsController
-import dao.ExpenseDao
+import controllers.ExpenseController
+import dao.{ExpenseDao, UserDao}
 import doobie.util.transactor.Transactor
-import doobie.quill.DoobieContext
-import io.getquill.Literal
-class PaymentsModule[F[_]: Sync](transactor: Transactor[F]) extends Module[F] {
-  import PaymentsModule.PostgresContext
-  val dc: PostgresContext = new DoobieContext.Postgres(Literal)
+import services.{AuthService, ExpenseService, UserService}
 
-  lazy val expenseDao = {
-    wire[ExpenseDao[F]]
+class PaymentsModule[F[_]: Sync](transactor: Transactor[F], config: AppConfig) extends Module[F] {
+
+  lazy val authService: AuthService[F] = {
+    val authConfig = config.authConfig
+    wire[AuthService[F]]
   }
-  override lazy val paymentsController: PaymentsController[F] = wire[PaymentsController[F]]
+
+  lazy val userDao: UserDao            = wire[UserDao]
+  lazy val userService: UserService[F] = wire[UserService[F]]
+
+  lazy val expenseDao: ExpenseDao                           = wire[ExpenseDao]
+  lazy val expenseService: ExpenseService[F]                = wire[ExpenseService[F]]
+  override lazy val expenseController: ExpenseController[F] = wire[ExpenseController[F]]
 
 }
 
-object PaymentsModule{
+object PaymentsModule {
 
-  type PostgresContext = DoobieContext.Postgres[Literal.type]
-
-  def make[F[_]: Sync](transactor: Transactor[F]): PaymentsModule[F] = {
-    new PaymentsModule[F](transactor)
+  def make[F[_]: Sync](transactor: Transactor[F], config: AppConfig): PaymentsModule[F] = {
+    new PaymentsModule[F](transactor, config)
   }
 }

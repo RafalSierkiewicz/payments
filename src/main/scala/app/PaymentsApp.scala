@@ -1,6 +1,6 @@
 package app
 
-import app.config.DbConfig
+import app.config.{AppConfig, AuthConfig, DbConfig}
 import cats.Parallel
 import cats.effect._
 import com.typesafe.config.ConfigFactory
@@ -17,44 +17,42 @@ import pureconfig.ConfigSource
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration.Duration
 
-
 class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEffect[F]) {
-  private val configF: F[DbConfig] = {
+  private val configF: F[AppConfig] = {
     import pureconfig.generic.auto._
-    F.delay(
-      ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
-    )
+    F.delay({
+      val db   = ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
+      val auth =
+        ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("auth").loadOrThrow[AuthConfig]
+
+      AppConfig(db, auth)
+    })
+
   }
 
   val run: F[ExitCode] = {
     (for {
-    config <- Resource.liftF(configF).evalTap(runMigrations)
-    blocker <- Blocker[F]
-    transactor<- transactorResource(config, blocker)
-    _ <- BlazeServerBuilder[F](global)
-    .bindHttp(8080, "localhost")
-    .withIdleTimeout(Duration.Inf)
-    .withHttpApp(routes(PaymentsModule.make[F](transactor)).orNotFound)
-    .resource
+      config     <- Resource.liftF(configF).evalTap(conf => runMigrations(conf.dbConfig))
+      blocker    <- Blocker[F]
+      transactor <- transactorResource(config.dbConfig, blocker)
+      _          <- BlazeServerBuilder[F](global)
+        .bindHttp(8080, "localhost")
+        .withIdleTimeout(Duration.Inf)
+        .withHttpApp(routes(PaymentsModule.make[F](transactor, config)).orNotFound)
+        .resource
     } yield ()).use(_ => F.never)
   }
 
   private def transactorResource(config: DbConfig, blocker: Blocker): Resource[F, HikariTransactor[F]] = {
     for {
       ce <- ExecutionContexts.fixedThreadPool(32)
-      xc <- HikariTransactor.newHikariTransactor(
-        config.driver,
-        config.jdbcUrl,
-        config.user,
-        config.password,
-        ce,
-        blocker
-      )
+      xc <-
+        HikariTransactor.newHikariTransactor(config.driver, config.jdbcUrl, config.user, config.password, ce, blocker)
     } yield xc
   }
 
   private def runMigrations(config: DbConfig) = {
-    F.delay{
+    F.delay {
       Flyway
         .configure(getClass.getClassLoader)
         .dataSource(config.jdbcUrl, config.user, config.password)
@@ -64,15 +62,13 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
   }
 
   private def routes(module: Module[F]) = {
-    Router(
-      "api/payments" -> module.paymentsController.routes
-    )
+    Router("api/payments" -> module.expenseController.routes)
   }
 }
 
-object Main extends IOApp{
+object Main extends IOApp {
   LogFactory.setLogCreator(new Slf4jLogCreator)
-  override def run(args:  List[String]): IO[ExitCode] = {
+  override def run(args: List[String]): IO[ExitCode] = {
     new PaymentsApp[IO].run
   }
 }

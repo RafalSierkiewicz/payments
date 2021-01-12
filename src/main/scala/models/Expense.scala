@@ -1,21 +1,14 @@
 package models
-import java.time.Instant
-import java.util.Date
+import java.sql.Timestamp
 
-import io.circe.Decoder.Result
+import io.circe.{Codec, Decoder, Encoder}
 import io.circe.generic.semiauto._
-import io.circe.{Decoder, Encoder, HCursor, Json}
-
-
-case class Expense(id: Long, name: Option[String], price: Double, created_at: Date, month: Int)
+import utils.DateCodec._
+case class Expense(id: Long, schemaId: Long, name: Option[String], price: Double, createdAt: Timestamp)
+case class ExpenseToCreate(name: Option[String], price: Double, createdAt: Option[Timestamp])
 
 object Expense {
-  import utils.DateCodec._
-  implicit val encoder: Encoder[Expense] = deriveEncoder[Expense]
 
-  implicit val insertExpenseDecoder: Decoder[Expense] = (c: HCursor) => for {
-      name <- c.get[Option[String]]("name")
-      price <- c.get[Double]("price")
-      month <- c.get[Int]("month")
-    } yield Expense(0, name, price, Date.from(Instant.now()), month)
+  implicit val expenseCodec: Codec[Expense]                   = deriveCodec[Expense]
+  implicit val expenseToCreateCodec: Decoder[ExpenseToCreate] = deriveDecoder[ExpenseToCreate]
 }
