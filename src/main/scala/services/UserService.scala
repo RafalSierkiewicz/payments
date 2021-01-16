@@ -1,23 +1,29 @@
 package services
 
-import doobie._
-import doobie.implicits._
-import cats.effect.Bracket
+import cats.effect.{Bracket, Sync}
 import dao.UserDao
-import doobie.util.transactor.Transactor
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import models.{User, UserToCreate}
+import utils.PasswordHasher
 
-class UserService[F[_]](userDao: UserDao, xa: Transactor[F])(implicit ev: Bracket[F, Throwable]) {
+class UserService[F[_]: Sync](userDao: UserDao)(implicit ev: Bracket[F, Throwable]) {
 
-  def getByEmail(email: String): F[Option[User]] = {
-    userDao.getByEmail(email).option.transact(xa)
+  def getByEmail(email: String): doobie.ConnectionIO[Option[User]] = {
+    userDao.getByEmail(email)
   }
 
-  def getById(id: Long): F[Option[User]] = {
-    userDao.getById(id).option.transact(xa)
+  def getById(id: Long): doobie.ConnectionIO[Option[User]] = {
+    userDao.getById(id)
   }
 
-  def insert(user: UserToCreate): F[Long] = {
-    userDao.insert(user).withUniqueGeneratedKeys[Long]("id").transact(xa)
+  def getCompanyUsers(companyId: Long) = {
+    userDao.listCompanyUsers(companyId)
+  }
+
+  def insert(user: UserToCreate, companyId: Long): doobie.ConnectionIO[Long] = {
+    PasswordHasher.hashPassword(user.password) match {
+      case Some(pass) => userDao.insert(user.copy(password = pass), companyId)
+      case None       => throw new Exception("Cannot perform operation. Hashing failed")
+    }
   }
 }

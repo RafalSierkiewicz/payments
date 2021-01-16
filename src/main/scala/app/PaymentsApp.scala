@@ -62,7 +62,7 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
   }
 
   private def routes(module: Module[F]) = {
-    Router("api/payments" -> module.expenseController.routes)
+    Router("api/expenses" -> module.expenseController.routes, "api/users" -> module.userController.routes)
   }
 }
 

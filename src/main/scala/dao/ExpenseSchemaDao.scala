@@ -1,24 +1,37 @@
 package dao
+import java.sql.Timestamp
+import java.time.Instant
+
 import cats.effect.Bracket
 import doobie.util.fragment.Fragment
-import doobie.implicits._, doobie.implicits.javasql._, doobie.implicits.javatime._
+import doobie.implicits._
+import doobie.implicits.javasql._
+import doobie.implicits.javatime._
 import models.{ExpenseSchema, ExpenseSchemaToCreate}
 
 class ExpenseSchemaDao {
 
   private val fieldsWithoutId: Fragment = Fragment.const("name, created_at")
-  private val allFields: Fragment       = Fragment.const("id, user_id") ++ fieldsWithoutId
+  private val allFields: Fragment       = Fragment.const("id, company_id") ++ fieldsWithoutId
   private val tableName: Fragment       = Fragment.const("expense_schemas")
 
-  def getUserSchemas(userId: Long): doobie.Query0[ExpenseSchema] = {
-    val sql = fr"select " ++ allFields ++ fr"from " ++ tableName ++ fr"where id=$userId"
-    sql.query[ExpenseSchema]
+  def getCompanySchemas(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpenseSchema] = {
+    val sql =
+      fr"select id, company_id, name, created_at from " ++ tableName ++ fr"where company_id=$companyId order by created_at"
+    sql.query[ExpenseSchema].stream
   }
 
-  def insert(userId: Long, schema: ExpenseSchemaToCreate): doobie.Update0 = {
+  def getById(schemaId: Long, companyId: Long): doobie.ConnectionIO[ExpenseSchema] = {
     val sql =
-      fr"insert into " ++ tableName ++ fr"(user_id, " ++ fieldsWithoutId ++ fr") values ($userId, ${schema.name}, ${schema.createdAt}"
-    sql.update
+      fr"select id, company_id, name, created_at from " ++ tableName ++ fr"where id=$schemaId and company_id=$companyId"
+    sql.query[ExpenseSchema].unique
+  }
+
+  def insert(companyId: Long, schema: ExpenseSchemaToCreate): doobie.ConnectionIO[Long] = {
+    val now = Timestamp.from(Instant.now())
+    val sql =
+      fr"insert into " ++ tableName ++ fr"(company_id, " ++ fieldsWithoutId ++ fr") values ($companyId, ${schema.name}, $now)"
+    sql.update.withUniqueGeneratedKeys[Long]("id")
   }
 
 }

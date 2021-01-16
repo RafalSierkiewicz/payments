@@ -1,52 +1,65 @@
 package controllers
 
-import cats.{Applicative, Monad}
-import cats.effect.{ContextShift, Effect, IO, Sync}
+import cats.Monad
+import cats.effect.Sync
 import cats.implicits._
-
-import io.circe.fs2.decoder
-import io.circe.{Decoder, Json}
+import doobie.util.transactor.Transactor
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.syntax._
-import models.User._
-import models.UserToCreate
-import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
+import models.{CompanyToCreate, User, UserToCreate}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import services.{AuthService, UserService}
-
+import org.http4s.{AuthedRoutes, HttpRoutes}
+import services.{AuthService, CompanyService, UserService}
+import models.User._
+import models.Company._
+import doobie.implicits._
 case class LoginForm(email: String, password: String)
-case class UserWithCompany(user: UserToCreate, company: String)
-class UserController[F[_]: Sync: Monad](service: UserService[F], authService: AuthService[F])
-    extends Http4sDsl[F]
+case class UserWithCompanyForm(user: UserToCreate, company: CompanyToCreate)
+class UserController[F[_]: Sync: Monad](
+  service: UserService[F],
+  companyService: CompanyService[F],
+  authService: AuthService[F],
+  xa: Transactor[F]
+) extends Http4sDsl[F]
     with BaseController {
-  implicit val loginFormDecoder                                    = deriveDecoder[LoginForm]
-  implicit val loginFormEntityDecoder: EntityDecoder[F, LoginForm] = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
-  val openRoutes: HttpRoutes[F] = {
+  implicit def unsafeLogger[F[_]: Sync]                 = Slf4jLogger.getLogger[F]
+  private implicit val loginFormDecoder                 = deriveDecoder[LoginForm]
+  private implicit val loginFormEntityDecoder           = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
+  private implicit val userWithCompanyFormDecoder       = deriveDecoder[UserWithCompanyForm]
+  private implicit val userWithCompanyFormEntityDecoder = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
+  private implicit val userEntityEncoder                = CirceEntityEncoder.circeEntityEncoder[F, User]
+  private val openRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
-      case req @ POST -> Root           =>
-        Ok.apply(
-          decodeRequest[F, UserToCreate](req)
-            .through(
-              _.through(hashUserPassword)
-                .evalMap(service.insert)
-                .map(_.asJson)
-            )
-        )
-      case req @ POST -> Root / "login" =>
-        req.decode[LoginForm] { loginForm =>
-          authService.verifyLogin(loginForm.email, loginForm.password).flatMap {
-            case Some(token) => Ok(token)
-            case None        => Forbidden()
+      case req @ POST -> Root / "login"    =>
+        req
+          .decode[LoginForm] { loginForm =>
+            authService
+              .verifyLogin(loginForm.email, loginForm.password)
+              .flatMap {
+                case Some(token) => Ok(token)
+                case None        => Forbidden()
+              }
           }
+          .handleErrorWith(error => BadRequest(error.getMessage))
+      case req @ POST -> Root / "register" =>
+        req.decode[UserWithCompanyForm] { userWithCompanyForm =>
+          companyService
+            .createWithUser(userWithCompanyForm.company, userWithCompanyForm.user)
+            .flatMap(id => Ok.apply(id.asJson))
         }
     }
   }
-
-  private def hashUserPassword: fs2.Pipe[F, UserToCreate, UserToCreate] = { userToCreate =>
-    userToCreate
-      .filter(user => authService.hashPassword(user.password).isDefined)
-      .map(user => user.copy(password = authService.hashPassword(user.password).get))
+  private val authedRoutes: AuthedRoutes[User, F] = {
+    AuthedRoutes.of {
+      case GET -> Root / IntVar(userId) as user =>
+        Ok(user.asJson)
+      case GET -> Root as user                  =>
+        Ok(service.getCompanyUsers(user.companyId).transact(xa).map(_.asJson))
+    }
   }
 
+  def routes: HttpRoutes[F] = openRoutes <+> authService.middleware(authedRoutes)
 }
