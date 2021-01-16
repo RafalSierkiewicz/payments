@@ -1,0 +1,12 @@
+.app {
+  &__root,
+  &__wrapper,
+  &__container {
+    height: 100%;
+  }
+
+  &__wrapper {
+    display: block;
+    padding-left: 200px;
+  }
+}

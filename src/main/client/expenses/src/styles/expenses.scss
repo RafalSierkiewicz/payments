@@ -1,0 +1,14 @@
+.expenses {
+  &__form {
+    text-align: center;
+  }
+  &__nav {
+    &-link {
+      color: white;
+    }
+  }
+  &__list {
+    background: $navBackground !important;
+    color: white;
+  }
+}

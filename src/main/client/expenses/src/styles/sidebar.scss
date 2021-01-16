@@ -1,0 +1,131 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100%;
+  padding-top: 20px;
+  padding-bottom: 50px;
+  background-color: $navBackground;
+  z-index: 15;
+
+  &--compact {
+    width: 50px;
+  }
+
+  &__logo {
+    display: block;
+    max-width: 100%;
+    max-height: 23px;
+    margin: 0 auto;
+    padding: 0 20px;
+
+    .sidebar--compact & {
+      margin: 5px auto 20px;
+      padding: 0 5px;
+    }
+  }
+
+  &__title {
+    padding: 2px 20px;
+    color: #d8d8d8;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 0.5px;
+
+    .sidebar--compact & {
+      height: 0;
+      margin: 5px 0;
+      padding: 0;
+      border-top: 1px solid transparentize(#e5e9f0, 0.8);
+      overflow: hidden;
+    }
+  }
+
+  &__link {
+    position: relative;
+    display: block;
+    height: 34px;
+    width: 100%;
+    padding: 9px 5px 9px 55px;
+    color: #a4b2ca;
+    text-decoration: none;
+    line-height: 16px;
+
+    img {
+      position: absolute;
+      top: 8px;
+      left: 0;
+      display: inline-block;
+      max-height: 18px;
+      width: 60px;
+      opacity: 0.5;
+    }
+
+    &:hover,
+    &--active {
+      background-color: $navActive;
+      color: white;
+
+      img {
+        opacity: 1;
+      }
+    }
+
+    &--active {
+      &:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        width: 2px;
+        height: 100%;
+        background-color: white;
+      }
+    }
+
+    .sidebar--compact & {
+      padding-left: 0;
+
+      img {
+        width: 50px;
+      }
+    }
+  }
+
+  &__link-text {
+    .sidebar--compact & {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 50px;
+      padding: 9px;
+      background-color: #20334f;
+      white-space: nowrap;
+    }
+
+    .sidebar--compact .sidebar__link:hover & {
+      display: block;
+    }
+  }
+
+  &__toggle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px 5px 0;
+    background-color: #20334f;
+    border-top: 1px solid transparentize(#e5e9f0, 0.8);
+    text-align: right;
+
+    img {
+      display: inline-block;
+      padding: 0 8px;
+      cursor: pointer;
+    }
+  }
+}
