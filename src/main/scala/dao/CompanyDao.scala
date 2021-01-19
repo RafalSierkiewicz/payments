@@ -8,19 +8,17 @@ import doobie.implicits._
 import doobie.implicits.javasql._, doobie.implicits.javatime._
 import doobie.util.fragment.Fragment
 
-class CompanyDao {
+class CompanyDao extends AppDao {
 
-  private def tableName = Fragment.const("companies")
-
+  val tableName: Fragment             = Fragment.const("companies")
+  override val updateFields: Fragment = Fragment.const("name, created_at")
   def insert(company: CompanyToCreate): doobie.ConnectionIO[Long] = {
     val now = Timestamp.from(Instant.now())
-    val sql = fr"insert into" ++ tableName ++ fr" (name, created_at) values (${company.name}, $now)"
-    sql.update.withUniqueGeneratedKeys[Long]("id")
+    insertQ(fr"(${company.name}, $now)").withUniqueGeneratedKeys[Long]("id")
   }
 
   def findById(id: Long): doobie.ConnectionIO[Option[Company]] = {
-    val sql = fr"select id, name, created_at from " ++ tableName ++ fr"where id = ${id}"
-    sql.query[Company].option
+    selectQ[Company](fr"where id = ${id}").option
   }
 
 }

@@ -4,22 +4,18 @@ import models.ExpenseTypeToCreate
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import models.ExpenseType
-class ExpenseTypeDao {
-  private val tableName = Fragment.const("company_expenses_types")
+class ExpenseTypeDao extends AppDao {
+  val tableName: Fragment    = Fragment.const("company_expenses_types")
+  val updateFields: Fragment = Fragment.const("company_id, name")
 
   def insert(companyId: Long, expenseTypeToCreate: ExpenseTypeToCreate): doobie.ConnectionIO[Long] = {
-    val sql = sql"insert into company_expenses_types(company_id, name) values ($companyId, ${expenseTypeToCreate.name})"
-    sql.update.withUniqueGeneratedKeys[Long]("id")
+    insertQ(fr"($companyId, ${expenseTypeToCreate.name})").withUniqueGeneratedKeys[Long]("id")
   }
 
   def listByCompany(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpenseType] = {
-    select(fr"company_id=${companyId}").query[ExpenseType].stream
+    selectQ[ExpenseType](fr"where company_id=${companyId}").stream
   }
 
   def findById(id: Long): doobie.ConnectionIO[Option[ExpenseType]] =
-    select(fr"id = $id").query[ExpenseType].option
-
-  def select(predicate: Fragment) = {
-    fr"select id, company_id, name from" ++ tableName ++ fr"where " ++ predicate
-  }
+    selectQ[ExpenseType](fr"where id = $id").option
 }

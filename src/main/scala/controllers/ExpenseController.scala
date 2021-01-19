@@ -1,40 +1,49 @@
 package controllers
+import cats.data.Kleisli
 import cats.effect.{IO, Sync}
 import cats.implicits._
 import doobie.util.transactor.Transactor
 import io.circe.fs2._
 import io.circe.syntax._
 import org.http4s.circe._
-import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
+import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes, Request, Response}
 import org.http4s.dsl.Http4sDsl
-import models.{ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate, User}
+import models.{ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate, NotExists, User}
 import services.{AuthService, ExpenseService}
 import models.Expense._
 import doobie.implicits._
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import models.ExpenseType._
 import models.ExpenseSchema._
 class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: AuthService[F], xa: Transactor[F])
     extends Http4sDsl[F]
     with BaseController {
+  implicit def unsafeLogger = Slf4jLogger.getLogger[F]
 
   private implicit val expenseToCreate: EntityDecoder[F, ExpenseToCreate]             = jsonOf[F, ExpenseToCreate]
   private implicit val expenseSchemaToCreate: EntityDecoder[F, ExpenseSchemaToCreate] = jsonOf[F, ExpenseSchemaToCreate]
   private val protectedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
-      case GET -> Root as _                 =>
+      case GET -> Root / IntVar(id) as user             =>
         Ok.apply(
-          service.list
+          service
+            .findExpensesBySchemaId(id, user.companyId)
             .transact(xa)
             .map(exp => exp.asJson)
+            .handleErrorWith(e => {
+              Logger[F].error(s"Error while retrieving data: ${e.getMessage}")
+              fs2.Stream.empty
+            })
         )
-      case GET -> Root / IntVar(id) as user =>
+      case GET -> Root / IntVar(id) / "summary" as user =>
         Ok.apply(
           service
             .findExpensesBySchemaId(id, user.companyId)
             .transact(xa)
             .map(exp => exp.asJson)
         )
-      case req @ POST -> Root as _          =>
+      case req @ POST -> Root as _                      =>
         for {
           expense <- req.req.as[ExpenseToCreate]
           resp    <-
@@ -47,7 +56,7 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
               }.merge)
         } yield resp
 
-      case req @ GET -> Root / "types" as user =>
+      case _ @GET -> Root / "types" as user =>
         Ok.apply(service.listTypesByCompany(user.companyId).transact(xa).map(_.asJson))
 
       case req @ POST -> Root / "types" as user  =>
