@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
-import { call, takeLatest, put } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 
-import { IActionEmpty, IActionTyped, IExpenseTypeCreate } from 'models';
+import { IActionEmpty } from 'models';
 import { actions, actionTypes } from 'actions';
 
 function* loadAllUsers() {

@@ -1,4 +1,4 @@
-import { IActionEmpty, IActionTyped, IExpense, IExpenseCreate, IExpenseType, IExpenseTypeCreate, IUser } from 'models';
+import { IActionEmpty, IActionTyped, IUser } from 'models';
 
 const loadAllUsersStart = (): IActionEmpty => ({
   type: actionTypes.LOAD_ALL_USERS_START,

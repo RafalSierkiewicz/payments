@@ -1,21 +1,20 @@
 package controllers
-import cats.data.Kleisli
-import cats.effect.{IO, Sync}
+import cats.effect.Sync
 import cats.implicits._
-import doobie.util.transactor.Transactor
-import io.circe.fs2._
-import io.circe.syntax._
-import org.http4s.circe._
-import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes, Request, Response}
-import org.http4s.dsl.Http4sDsl
-import models.{ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate, NotExists, User}
-import services.{AuthService, ExpenseService}
-import models.Expense._
 import doobie.implicits._
+import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import models.ExpenseType._
+import io.circe.syntax._
+import models.Charts._
+import models.Expense._
 import models.ExpenseSchema._
+import models.ExpenseType._
+import models.{ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate, User}
+import org.http4s.circe._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
+import services.{AuthService, ExpenseService}
 class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: AuthService[F], xa: Transactor[F])
     extends Http4sDsl[F]
     with BaseController {
@@ -39,11 +38,19 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
       case GET -> Root / IntVar(id) / "summary" as user =>
         Ok.apply(
           service
-            .findExpensesBySchemaId(id, user.companyId)
+            .getExpensesChartsData(id, user.companyId)
             .transact(xa)
             .map(exp => exp.asJson)
         )
-      case req @ POST -> Root as _                      =>
+
+      case GET -> Root / "summary" as user =>
+        Ok.apply(
+          service
+            .getCompanyChartData(user.companyId)
+            .transact(xa)
+            .map(exp => exp.asJson)
+        )
+      case req @ POST -> Root as _         =>
         for {
           expense <- req.req.as[ExpenseToCreate]
           resp    <-

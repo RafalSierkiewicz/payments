@@ -9,7 +9,10 @@ const axiosInstance = axios;
 function* loadSchemaExpenses(action: IActionTyped<number>) {
   try {
     const expenses = yield call(fetchSchemaExpenseCall, action.payload);
+    const chartData = yield call(fetchSchemaChartDataCall, action.payload);
+
     yield put(actions.expenses.loadSchemaExpensesSuccess(expenses));
+    yield put(actions.expenses.loadSchemaChartDataSuccess(chartData));
   } catch {
     console.log('Error');
   }
@@ -18,9 +21,13 @@ function* loadSchemaExpenses(action: IActionTyped<number>) {
 const fetchSchemaExpenseCall = (id: number) =>
   axiosInstance.get(`/api/expenses/${id}`).then((response: AxiosResponse) => response.data);
 
+const fetchSchemaChartDataCall = (id: number) =>
+  axiosInstance.get(`/api/expenses/${id}/summary`).then((response: AxiosResponse) => response.data);
+
 function* loadAllExpenseTypes() {
   try {
     const expenseTypes = yield call(fetchAllExpenseTypesCall);
+
     yield put(actions.expenses.loadAllTypesSuccess(expenseTypes));
   } catch {
     console.log('Error');
@@ -33,11 +40,25 @@ const fetchAllExpenseTypesCall = () =>
 function* loadAllExpenseSchemas() {
   try {
     const expenseSchemas = yield call(fetchAllExpenseSchemasCall);
+    const companyChart = yield call(fetchCompanyChartDataCall);
     yield put(actions.expenses.loadAllSchemasSuccess(expenseSchemas));
+    yield put(actions.expenses.loadCompanyBarChartSuccess(companyChart));
   } catch {
     console.log('Error');
   }
 }
+
+function* loadCompanyChartData() {
+  try {
+    const companyChart = yield call(fetchCompanyChartDataCall);
+    yield put(actions.expenses.loadCompanyBarChartSuccess(companyChart));
+  } catch {
+    console.log('Error');
+  }
+}
+
+const fetchCompanyChartDataCall = () =>
+  axiosInstance.get(`/api/expenses/summary`).then((response: AxiosResponse) => response.data);
 
 const fetchAllExpenseSchemasCall = () =>
   axiosInstance.get('/api/expenses/schemas').then((response: AxiosResponse) => response.data);
@@ -82,6 +103,7 @@ export const expensesSaga = [
   takeLatest(actionTypes.expenses.LOAD_SCHEMA_EXPENSES, (action: IActionTyped<number>) => loadSchemaExpenses(action)),
   takeLatest(actionTypes.expenses.LOAD_ALL_TYPES_START, (action: IActionEmpty) => loadAllExpenseTypes()),
   takeLatest(actionTypes.expenses.LOAD_ALL_SCHEMAS_START, (action: IActionEmpty) => loadAllExpenseSchemas()),
+  takeLatest(actionTypes.expenses.LOAD_COMPANY_CHART_START, (action: IActionEmpty) => loadCompanyChartData()),
   takeLatest(actionTypes.expenses.CREATE_EXPENSE, (action: IActionTyped<IExpenseCreate>) => createExpense(action)),
   takeLatest(actionTypes.expenses.CREATE_EXPENSE_SCHEMA, (action: IActionTyped<IExpenseSchema>) =>
     createExpenseSchema(action)

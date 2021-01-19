@@ -1,20 +1,22 @@
 import * as React from 'react';
-import { compose, Dispatch } from 'redux';
+import { Dispatch } from 'redux';
 import { actions } from 'actions';
-import { IAppState, IExpense, IExpenseSchema, IExpenseType } from 'models';
-import { Button, Container, Nav, Navbar, NavbarBrand, NavDropdown, NavLink, Row, Spinner } from 'react-bootstrap';
+import { IAppState, IBarChart, ICompanyBarCharts, IExpenseSchema, IExpenseType } from 'models';
+import { Container, Nav, Navbar, NavDropdown, Row } from 'react-bootstrap';
 import { ExpensesPage } from 'components';
 import { connect } from 'react-redux';
-import { Link, Redirect, Route, Switch } from 'react-router-dom';
+import { Link, Route, RouteComponentProps, Switch, withRouter } from 'react-router-dom';
 import { ExpensesSettings } from './ExpensesSettings';
 import * as _ from 'lodash';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { ExpensesCharts } from './ExpensesCharts';
+import { CompanyExpenseChart } from './CompanyExpenseChart';
 
 interface IExpensesModuleBaseProps extends RouteComponentProps<any> {
   dispatch: Dispatch;
   areExpensesLoading: boolean;
   types: IExpenseType[];
   schemas: IExpenseSchema[];
+  chartData: ICompanyBarCharts;
 }
 
 class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
@@ -24,7 +26,6 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
   }
 
   render() {
-    const { areExpensesLoading } = this.props;
     return (
       <Container fluid={true}>
         <Row className="navs">
@@ -38,7 +39,7 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
                 <NavDropdown id="expenses_sheet_dropdown" title="Sheets" className="expenses__nav-link">
                   {_.map(this.props.schemas, (schema: IExpenseSchema) => {
                     return (
-                      <Row className="dropdown-item" id={schema.id.toString()}>
+                      <Row className="dropdown-item" key={schema.id.toString()}>
                         <Link to={`/expenses/schema/${schema.id}`} className="nav-item">
                           <p>{schema.name}</p>
                         </Link>
@@ -49,14 +50,24 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
               </Nav>
             </Navbar.Collapse>
 
-            <Link to="expenses/settings" className="mr-auto expenses__nav-link nav-link">
+            <Link to="/expenses/settings" className="mr-auto expenses__nav-link nav-link">
               Settings
+            </Link>
+            <Link to="/expenses/charts" className="mr-auto expenses__nav-link nav-link">
+              Charts
             </Link>
           </Navbar>
         </Row>
+        <Container></Container>
         <Switch>
-          <Route path={'/expenses/schema/:id'} component={ExpensesPage} />
+          <Route exact={true} path={'/expenses/schema/:id'} component={ExpensesPage} />
           <Route exact={true} path={'/expenses/settings'} component={ExpensesSettings} />
+          <Route exact={true} path={'/expenses/charts'} component={ExpensesCharts} />
+          <Route
+            exact={true}
+            path={'/expenses'}
+            component={() => <CompanyExpenseChart chartData={this.props.chartData} />}
+          />
         </Switch>
       </Container>
     );
@@ -68,6 +79,7 @@ const mapStateToProps = (state: IAppState) => {
     areExpensesLoading: state.expensesStore.areExpensesLoading,
     types: state.expensesStore.types,
     schemas: state.expensesStore.schemas,
+    chartData: state.expensesStore.companyChart,
   };
 };
 

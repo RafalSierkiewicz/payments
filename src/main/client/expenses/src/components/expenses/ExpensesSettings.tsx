@@ -1,9 +1,5 @@
 import React from 'react';
-import { Button, Col, Container, Form } from 'react-bootstrap';
-import { useDispatch } from 'react-redux';
-import { Formik } from 'formik';
-import { actions } from 'actions';
-import * as Yup from 'yup';
+import { Container } from 'react-bootstrap';
 import { ExpensesTypeForm } from './ExpenseSettingTypeForm';
 import { ExpensesSchemaForm } from './ExpenseSettingSchemaForm';
 

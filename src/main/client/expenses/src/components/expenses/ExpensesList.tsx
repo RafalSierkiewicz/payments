@@ -11,9 +11,7 @@ const ExpensesList: React.FC = () => {
   const types = useSelector(getTypes);
 
   const grouped = _.groupBy(expenses, (expense: IExpense) => expense.typeId);
-  _.map(grouped, (value, key) => {
-    console.log(value, key);
-  });
+
   return (
     <>
       {_.map(grouped, (expenses: IExpense[], key) => {
@@ -34,7 +32,7 @@ const ExpensesList: React.FC = () => {
                       <Col sm={3}>Expense type</Col>
                       <Col sm={2}>User</Col>
                       <Col sm={2}>Price</Col>
-                      <Col sm></Col>
+                      <Col sm />
                     </Row>
                   </Card.Header>
                   <ListGroup variant="flush">

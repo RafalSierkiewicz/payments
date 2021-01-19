@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Button, Form } from 'react-bootstrap';
 import * as Yup from 'yup';
-import { Formik, FormikProps } from 'formik';
+import { Formik } from 'formik';
 import { ILogin } from 'models';
 import { useDispatch } from 'react-redux';
 import { actions } from 'actions';

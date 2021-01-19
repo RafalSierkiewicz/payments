@@ -2,6 +2,8 @@ interface IExpensesStore {
   expenses: IExpense[];
   types: IExpenseType[];
   schemas: IExpenseSchema[];
+  currentSchemaChartData: ISchemaBarChart;
+  companyChart: ICompanyBarCharts;
   areExpensesLoading: boolean;
 }
 
@@ -12,6 +14,27 @@ interface IExpense {
   name: string | null;
   price: number;
   created_at: number;
+}
+
+interface ISchemaBarChart {
+  barChart: IBarChart;
+  lineChart: ILineChart;
+}
+
+interface ICompanyBarCharts {
+  chartByType: IBarChart;
+  chartBySchema: IBarChart;
+}
+
+interface IBarChart {
+  data: IBarChartData[];
+}
+interface IBarChartData {
+  label: string;
+  sum: number;
+}
+interface ILineChart {
+  data: number[];
 }
 
 interface IExpenseType {
@@ -50,4 +73,7 @@ export type {
   IExpenseTypeCreate,
   IExpenseSchema,
   IExpenseSchemaCreate,
+  ISchemaBarChart,
+  IBarChart,
+  ICompanyBarCharts,
 };

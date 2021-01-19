@@ -1,4 +1,4 @@
-import { IActionHandlers, IActionPayloadTyped, IAuthStore, IUser, IUsersStore } from 'models';
+import { IActionHandlers, IActionPayloadTyped, IUser, IUsersStore } from 'models';
 import { createReducer } from 'utils/redux-helpers';
 import { actionTypes } from '../actions';
 

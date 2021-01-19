@@ -7,9 +7,8 @@ import { IAppState, IExpense, IExpenseType, IUser } from 'models';
 import * as Yup from 'yup';
 import * as _ from 'lodash';
 import { ExpensesList } from './ExpensesList';
-import { Route, RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
-import { withRouter } from 'react-router-dom';
 
 const expenseSchema = Yup.object().shape({
   name: Yup.string(),
@@ -34,11 +33,13 @@ interface IExpensesPageProps extends RouteComponentProps<SchemaIdRouteProps> {
 class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
   componentDidMount() {
     const { dispatch, schemaId } = this.props;
-    dispatch(actions.expenses.loadSchemaExpensesStart(schemaId));
+    if (!_.isNaN(schemaId)) {
+      dispatch(actions.expenses.loadSchemaExpensesStart(schemaId));
+    }
   }
 
   componentDidUpdate(prevProps: Readonly<IExpensesPageProps>, prevState: Readonly<{}>, snapshot?: any) {
-    if (prevProps.schemaId !== this.props.schemaId) {
+    if (prevProps.schemaId !== this.props.schemaId && !_.isNaN(this.props.schemaId)) {
       const { dispatch, schemaId } = this.props;
 
       dispatch(actions.expenses.loadSchemaExpensesStart(schemaId));
@@ -46,7 +47,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
   }
 
   render() {
-    const { dispatch, types, users, schemaId, expenses } = this.props;
+    const { dispatch, types, users, schemaId } = this.props;
     const defaultExpenseCreate = {
       name: '',
       price: 0.0,

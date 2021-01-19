@@ -1,4 +1,4 @@
-import { IActionEmpty, IActionTyped } from '../models/common';
+import { IActionTyped } from '../models/common';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { actionTypes } from '../actions';
 import axios, { AxiosResponse } from 'axios';

@@ -4,12 +4,17 @@ import cats.effect.Bracket
 import dao.{ExpenseDao, ExpenseSchemaDao, ExpenseTypeDao}
 import doobie.util.transactor.Transactor
 import models.{
+  BarChart,
+  BarChartData,
+  CompanySummaryCharts,
   Expense,
   ExpenseSchemaToCreate,
   ExpenseToCreate,
   ExpenseTypeToCreate,
   ForeignKeyViolation,
+  LineChart,
   NotExists,
+  SchemaExpensesChart,
   Unexpected
 }
 import doobie.implicits._
@@ -25,6 +30,31 @@ class ExpenseService[F[_]](expenseDao: ExpenseDao, expenseTypeDao: ExpenseTypeDa
         fs2.Stream
           .raiseError[doobie.ConnectionIO](NotExists(s"Schema ${schemaId} does not belong to company $companyId"))
     }
+  }
+
+  def getCompanyChartData(companyId: Long) = {
+    for {
+      chartByType   <-
+        expenseDao
+          .getCompanyTypeChartData(companyId)
+          .map(
+            barChartDatas =>
+              barChartDatas.map(chartData => BarChartData(chartData.label, chartData.sum / barChartDatas.size))
+          )
+          .map(BarChart)
+      chartBySchema <- expenseDao.getCompanySchemaChartData(companyId).map(BarChart)
+    } yield CompanySummaryCharts(chartByType, chartBySchema)
+  }
+
+  def getExpensesChartsData(schemaId: Long, companyId: Long) = {
+    for {
+      _               <- expenseSchemaDao.getById(schemaId, companyId)
+      schemaChartData <- expenseDao.getSchemaChartData(schemaId)
+      companySummary  <-
+        expenseDao
+          .getCompanyTypeChartData(companyId)
+          .map(_.filter(data => schemaChartData.exists(_.label == data.label)))
+    } yield SchemaExpensesChart(BarChart(schemaChartData), LineChart(companySummary.map(_.sum)))
   }
 
   def getExpenseSchemaSummary(schemaId: Long, companyId: Long): fs2.Stream[doobie.ConnectionIO, Expense] = {
