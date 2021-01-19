@@ -1,7 +1,6 @@
 import {
   IActionHandlers,
   IActionPayloadTyped,
-  IBarChart,
   ICompanyBarCharts,
   IExpense,
   IExpenseSchema,

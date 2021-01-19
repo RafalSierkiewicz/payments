@@ -4,3 +4,4 @@ export * from 'components/auth/LogoutModule';
 export * from 'components/auth/LoginModule';
 export * from 'components/auth/RegisterModule';
 export * from 'components/common';
+export * from 'components/users/UsersModule';

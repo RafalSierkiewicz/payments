@@ -70,7 +70,8 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                 schemaId: schemaId,
               })
             );
-
+            act.resetForm({});
+            act.setStatus({ success: true });
             act.setSubmitting(false);
           }}
         >

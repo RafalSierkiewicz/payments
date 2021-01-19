@@ -8,6 +8,9 @@ const SidebarBase: React.FC<object> = React.memo(() => (
     <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/expenses'}>
       <span className={'sidebar__link-text'}>Expenses</span>
     </NavLink>
+    <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/users'}>
+      <span className={'sidebar__link-text'}>Users</span>
+    </NavLink>
     <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/logout'}>
       <span className={'sidebar__link-text'}>Logout</span>
     </NavLink>

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './App.css';
-import { ExpensesModule, Sidebar, withAuth } from 'components';
+import { ExpensesModule, Sidebar, UsersModule, withAuth } from 'components';
 import { connect } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import 'styles/index.scss';
@@ -12,6 +12,8 @@ const AppBase: React.FC = () => {
       <div className="app__container">
         <Switch>
           <Route path={'/expenses'} component={ExpensesModule} />
+          <Route path={'/users'} component={UsersModule} />
+
           <Redirect to={'/'} />
         </Switch>
       </div>

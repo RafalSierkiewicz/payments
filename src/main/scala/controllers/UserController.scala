@@ -11,7 +11,7 @@ import io.circe.syntax._
 import models.{CompanyToCreate, User, UserToCreate}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{AuthedRoutes, HttpRoutes}
+import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
 import services.{AuthService, CompanyService, UserService}
 import models.User._
 import models.Company._
@@ -25,12 +25,14 @@ class UserController[F[_]: Sync: Monad](
   xa: Transactor[F]
 ) extends Http4sDsl[F]
     with BaseController {
-  implicit def unsafeLogger[F[_]: Sync]                 = Slf4jLogger.getLogger[F]
-  private implicit val loginFormDecoder                 = deriveDecoder[LoginForm]
-  private implicit val loginFormEntityDecoder           = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
-  private implicit val userWithCompanyFormDecoder       = deriveDecoder[UserWithCompanyForm]
-  private implicit val userWithCompanyFormEntityDecoder = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
-  private implicit val userEntityEncoder                = CirceEntityEncoder.circeEntityEncoder[F, User]
+  implicit def unsafeLogger[F[_]: Sync]                                    = Slf4jLogger.getLogger[F]
+  private implicit val loginFormDecoder                                    = deriveDecoder[LoginForm]
+  private implicit val loginFormEntityDecoder                              = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
+  private implicit val userWithCompanyFormDecoder                          = deriveDecoder[UserWithCompanyForm]
+  private implicit val userWithCompanyFormEntityDecoder                    = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
+  private implicit val userEntityEncoder                                   = CirceEntityEncoder.circeEntityEncoder[F, User]
+  private implicit val userToCreateEncoder: EntityDecoder[F, UserToCreate] = jsonOf[F, UserToCreate]
+
   private val openRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
       case req @ POST -> Root / "login"    =>
@@ -58,6 +60,11 @@ class UserController[F[_]: Sync: Monad](
         Ok(user.asJson)
       case GET -> Root as user                  =>
         Ok(service.getCompanyUsers(user.companyId).transact(xa).map(_.asJson))
+      case req @ POST -> Root as user           =>
+        Ok.apply(for {
+          model  <- req.req.as[UserToCreate]
+          userId <- service.insert(model, user.companyId).transact(xa)
+        } yield userId.asJson)
     }
   }
 
