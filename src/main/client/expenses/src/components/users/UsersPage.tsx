@@ -23,6 +23,7 @@ const UsersPage: React.FC = () => {
   return (
     <>
       <Formik
+        key="user-create-form"
         initialValues={defaultUserValues}
         validationSchema={userCreateSchema}
         onSubmit={(values, act) => {
@@ -36,7 +37,7 @@ const UsersPage: React.FC = () => {
         }}
       >
         {({ handleSubmit, handleChange, values }) => (
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} id="user-create-form" key="user-create-form">
             <Form.Row>
               <Form.Group as={Col} controlId="userFormUsername">
                 <Form.Control

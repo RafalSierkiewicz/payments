@@ -15,4 +15,11 @@ interface IUserCreate {
   password: string;
 }
 
-export type { IUsersStore, IUser, IUserCreate };
+interface IUserUpdate {
+  id: number;
+  username?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+export type { IUsersStore, IUser, IUserCreate, IUserUpdate };

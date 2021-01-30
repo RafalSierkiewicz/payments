@@ -1,9 +1,12 @@
 package services
 
 import cats.effect.{Bracket, Sync}
+import cats.free.Free
 import dao.UserDao
+import cats.syntax.traverse._
+import doobie.free.connection
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import models.{User, UserToCreate}
+import models.{User, UserToCreate, UserUpdateModel}
 import utils.PasswordHasher
 
 class UserService[F[_]: Sync](userDao: UserDao)(implicit ev: Bracket[F, Throwable]) {
@@ -25,5 +28,20 @@ class UserService[F[_]: Sync](userDao: UserDao)(implicit ev: Bracket[F, Throwabl
       case Some(pass) => userDao.insert(user.copy(password = pass), companyId)
       case None       => throw new Exception("Cannot perform operation. Hashing failed")
     }
+  }
+
+  def update(userUpdate: UserUpdateModel, userId: Int, companyId: Long): doobie.ConnectionIO[Option[Long]] = {
+    for {
+      user    <- userDao.getCompanyUserById(companyId, userId)
+      updated <- user.traverse(
+        user =>
+          userDao.update(
+            user.copy(
+              username = userUpdate.username.orElse(user.username),
+              password = userUpdate.password.getOrElse(user.password)
+            )
+          )
+      )
+    } yield updated
   }
 }

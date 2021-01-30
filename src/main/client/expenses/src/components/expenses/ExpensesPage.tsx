@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { Button, Col, Container, Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { Formik } from 'formik';
@@ -31,6 +31,8 @@ interface IExpensesPageProps extends RouteComponentProps<SchemaIdRouteProps> {
 }
 
 class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
+  private inputRef = createRef<HTMLInputElement>();
+
   componentDidMount() {
     const { dispatch, schemaId } = this.props;
     if (!_.isNaN(schemaId)) {
@@ -41,7 +43,6 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
   componentDidUpdate(prevProps: Readonly<IExpensesPageProps>, prevState: Readonly<{}>, snapshot?: any) {
     if (prevProps.schemaId !== this.props.schemaId && !_.isNaN(this.props.schemaId)) {
       const { dispatch, schemaId } = this.props;
-
       dispatch(actions.expenses.loadSchemaExpensesStart(schemaId));
     }
   }
@@ -70,16 +71,18 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                 schemaId: schemaId,
               })
             );
-            act.resetForm({});
+            act.resetForm({ values: { typeName: values.typeName, name: '', price: 0, user: values.user } });
             act.setStatus({ success: true });
             act.setSubmitting(false);
+            this.inputRef.current!.focus();
           }}
         >
           {({ handleSubmit, handleChange, values, errors }) => (
             <Form onSubmit={handleSubmit}>
               <Form.Row>
-                <Form.Group as={Col} controlId="expenseFormName">
+                <Form.Group as={Col} controlId="expenseFormName" className="first">
                   <Form.Control
+                    ref={this.inputRef}
                     type="text"
                     placeholder="Enter expense name"
                     name="name"
@@ -88,7 +91,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     isInvalid={!!errors.name}
                   />
                 </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormPrice">
+                <Form.Group as={Col} controlId="expenseFormPrice" className="second">
                   <Form.Control
                     type="number"
                     placeholder="Enter price"
@@ -98,7 +101,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     isInvalid={!!errors.price}
                   />
                 </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormType">
+                <Form.Group as={Col} controlId="expenseFormType" className="third">
                   <Form.Control
                     as="select"
                     placeholder="Select type"
@@ -112,7 +115,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     })}
                   </Form.Control>
                 </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormUser">
+                <Form.Group as={Col} controlId="expenseFormUser" className="fourth">
                   <Form.Control
                     as="select"
                     placeholder="Select user"
@@ -125,7 +128,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     })}
                   </Form.Control>
                 </Form.Group>
-                <div>
+                <div className="fifth">
                   <Button size="sm" variant="primary" type="submit">
                     Submit
                   </Button>

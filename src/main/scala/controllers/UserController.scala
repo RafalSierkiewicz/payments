@@ -3,21 +3,22 @@ package controllers
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
+import doobie.implicits._
 import doobie.util.transactor.Transactor
-import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.syntax._
-import models.{CompanyToCreate, User, UserToCreate}
-import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
-import services.{AuthService, CompanyService, UserService}
 import models.User._
 import models.Company._
-import doobie.implicits._
+import models.{CompanyToCreate, User, UserToCreate, UserUpdateModel}
+import org.http4s.circe._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.{AuthedRoutes, HttpRoutes}
+import services.{AuthService, CompanyService, UserService}
+
 case class LoginForm(email: String, password: String)
 case class UserWithCompanyForm(user: UserToCreate, company: CompanyToCreate)
+
 class UserController[F[_]: Sync: Monad](
   service: UserService[F],
   companyService: CompanyService[F],
@@ -25,13 +26,14 @@ class UserController[F[_]: Sync: Monad](
   xa: Transactor[F]
 ) extends Http4sDsl[F]
     with BaseController {
-  implicit def unsafeLogger[F[_]: Sync]                                    = Slf4jLogger.getLogger[F]
-  private implicit val loginFormDecoder                                    = deriveDecoder[LoginForm]
-  private implicit val loginFormEntityDecoder                              = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
-  private implicit val userWithCompanyFormDecoder                          = deriveDecoder[UserWithCompanyForm]
-  private implicit val userWithCompanyFormEntityDecoder                    = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
-  private implicit val userEntityEncoder                                   = CirceEntityEncoder.circeEntityEncoder[F, User]
-  private implicit val userToCreateEncoder: EntityDecoder[F, UserToCreate] = jsonOf[F, UserToCreate]
+  implicit def unsafeLogger[F[_]: Sync]                 = Slf4jLogger.getLogger[F]
+  private implicit val loginFormDecoder                 = deriveDecoder[LoginForm]
+  private implicit val loginFormEntityDecoder           = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
+  private implicit val userWithCompanyFormDecoder       = deriveDecoder[UserWithCompanyForm]
+  private implicit val userWithCompanyFormEntityDecoder = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
+  private implicit val userEntityEncoder                = CirceEntityEncoder.circeEntityEncoder[F, User]
+  private implicit val userToCreateEncoder              = jsonOf[F, UserToCreate]
+  private implicit val userUpdateModelEncoder           = jsonOf[F, UserUpdateModel]
 
   private val openRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
@@ -56,14 +58,19 @@ class UserController[F[_]: Sync: Monad](
   }
   private val authedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
-      case GET -> Root / IntVar(userId) as user =>
+      case GET -> Root / IntVar(_) as user         =>
         Ok(user.asJson)
-      case GET -> Root as user                  =>
+      case GET -> Root as user                     =>
         Ok(service.getCompanyUsers(user.companyId).transact(xa).map(_.asJson))
-      case req @ POST -> Root as user           =>
+      case req @ POST -> Root as user              =>
         Ok.apply(for {
           model  <- req.req.as[UserToCreate]
           userId <- service.insert(model, user.companyId).transact(xa)
+        } yield userId.asJson)
+      case req @ PUT -> Root / IntVar(uId) as user =>
+        Ok.apply(for {
+          model  <- req.req.as[UserUpdateModel]
+          userId <- service.update(model, uId, user.companyId).transact(xa)
         } yield userId.asJson)
     }
   }

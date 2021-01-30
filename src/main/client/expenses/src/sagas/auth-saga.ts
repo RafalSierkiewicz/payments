@@ -4,15 +4,15 @@ import { actionTypes } from '../actions';
 import axios, { AxiosResponse } from 'axios';
 import { ILogin, IRegister } from '../models/auth';
 import { push } from 'connected-react-router';
-import { JWT_KEY } from '../utils/keys';
+import { JWT_KEY } from '../utils';
 
 function* login(action: IActionTyped<ILogin>) {
   try {
     const token = yield call(loginCall, action.payload);
     localStorage.setItem(JWT_KEY, token);
     yield put(push('/'));
-  } catch {
-    console.log('Error');
+  } catch (error) {
+    console.log('Error', error);
   }
 }
 
@@ -23,8 +23,8 @@ function* register(action: IActionTyped<IRegister>) {
   try {
     const companyID = yield call(registerCall, action.payload);
     console.log(companyID);
-  } catch {
-    console.log('Error');
+  } catch (error) {
+    console.log('Error', error);
   }
 }
 

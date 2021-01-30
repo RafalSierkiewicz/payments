@@ -33,7 +33,7 @@ axios.interceptors.response.use(
     if (error.response.status === 401) {
       window.location.replace('/logout');
     }
-    return error;
+    return Promise.reject(error);
   }
 );
 
@@ -48,7 +48,5 @@ const checkIfLogged = () => {
 checkIfLogged();
 
 sagaMiddleware.run(rootSaga);
-
-store.dispatch(actions.users.loadAllUsersStart());
 
 export { store, appHistory };
