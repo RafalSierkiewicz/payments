@@ -24,32 +24,30 @@ class UserController[F[_]: Sync: Monad](
   companyService: CompanyService[F],
   authService: AuthService[F],
   xa: Transactor[F]
-) extends Http4sDsl[F]
-    with BaseController {
+) extends BaseController[F] {
   implicit def unsafeLogger[F[_]: Sync]                 = Slf4jLogger.getLogger[F]
   private implicit val loginFormDecoder                 = deriveDecoder[LoginForm]
-  private implicit val loginFormEntityDecoder           = CirceEntityDecoder.circeEntityDecoder[F, LoginForm]
+  private implicit val loginFormEntityDecoder           = jsonOf[F, LoginForm]
   private implicit val userWithCompanyFormDecoder       = deriveDecoder[UserWithCompanyForm]
-  private implicit val userWithCompanyFormEntityDecoder = CirceEntityDecoder.circeEntityDecoder[F, UserWithCompanyForm]
+  private implicit val userWithCompanyFormEntityDecoder = jsonOf[F, UserWithCompanyForm]
   private implicit val userEntityEncoder                = CirceEntityEncoder.circeEntityEncoder[F, User]
   private implicit val userToCreateEncoder              = jsonOf[F, UserToCreate]
   private implicit val userUpdateModelEncoder           = jsonOf[F, UserUpdateModel]
 
   private val openRoutes: HttpRoutes[F] = {
     HttpRoutes.of {
-      case req @ POST -> Root / "login"    =>
-        req
-          .decode[LoginForm] { loginForm =>
-            authService
-              .verifyLogin(loginForm.email, loginForm.password)
-              .flatMap {
-                case Some(token) => Ok(token)
-                case None        => Forbidden()
-              }
-          }
-          .handleErrorWith(error => BadRequest(error.getMessage))
+      case req @ POST -> Root / "login" =>
+        parseBody[LoginForm](req) { loginForm =>
+          authService
+            .verifyLogin(loginForm.email, loginForm.password)
+            .flatMap {
+              case Some(token) => Ok(token)
+              case None        => Forbidden()
+            }
+        }
+
       case req @ POST -> Root / "register" =>
-        req.decode[UserWithCompanyForm] { userWithCompanyForm =>
+        parseBody[UserWithCompanyForm](req) { userWithCompanyForm =>
           companyService
             .createWithUser(userWithCompanyForm.company, userWithCompanyForm.user)
             .flatMap(id => Ok.apply(id.asJson))
@@ -58,20 +56,27 @@ class UserController[F[_]: Sync: Monad](
   }
   private val authedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
-      case GET -> Root / IntVar(_) as user         =>
+      case GET -> Root / IntVar(_) as user =>
         Ok(user.asJson)
-      case GET -> Root as user                     =>
+
+      case GET -> Root as user =>
         Ok(service.getCompanyUsers(user.companyId).transact(xa).map(_.asJson))
-      case req @ POST -> Root as user              =>
-        Ok.apply(for {
-          model  <- req.req.as[UserToCreate]
-          userId <- service.insert(model, user.companyId).transact(xa)
-        } yield userId.asJson)
+
+      case req @ POST -> Root as user =>
+        parseBody[UserToCreate](req.req) { model =>
+          service.insert(model, user.companyId).transact(xa).flatMap {
+            case Some(id) => Ok(id.asJson)
+            case None     => UnprocessableEntity("Password contains unprocessable chars")
+          }
+        }
+
       case req @ PUT -> Root / IntVar(uId) as user =>
-        Ok.apply(for {
-          model  <- req.req.as[UserUpdateModel]
-          userId <- service.update(model, uId, user.companyId).transact(xa)
-        } yield userId.asJson)
+        parseBody[UserUpdateModel](req.req) { model =>
+          service.update(model, uId, user.companyId).transact(xa).flatMap {
+            case Some(id) => Ok(id.asJson)
+            case None     => NotFound()
+          }
+        }
     }
   }
 

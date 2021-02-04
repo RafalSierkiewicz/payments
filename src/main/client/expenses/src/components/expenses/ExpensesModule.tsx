@@ -6,10 +6,12 @@ import { Container, Nav, Navbar, NavDropdown, Row } from 'react-bootstrap';
 import { ExpensesPage } from 'components';
 import { connect } from 'react-redux';
 import { Link, Route, RouteComponentProps, Switch, withRouter } from 'react-router-dom';
-import { ExpensesSettings } from './ExpensesSettings';
 import * as _ from 'lodash';
 import { ExpensesCharts } from './ExpensesCharts';
 import { CompanyExpenseChart } from './CompanyExpenseChart';
+import { ExpensesSchemasPage } from './ExpenseSchemasPage';
+import { ExpensesTypesPage } from './ExpenseTypesPage';
+import { ExpensesPricePartPage } from './ExpensePricePartPage';
 
 interface IExpensesModuleBaseProps extends RouteComponentProps<any> {
   dispatch: Dispatch;
@@ -23,6 +25,7 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
   componentDidMount() {
     this.props.dispatch(actions.expenses.loadAllTypesStart());
     this.props.dispatch(actions.expenses.loadAllSchemasStart());
+    this.props.dispatch(actions.expenses.loadAllPartsStart());
   }
 
   render() {
@@ -49,10 +52,6 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
                 </NavDropdown>
               </Nav>
             </Navbar.Collapse>
-
-            <Link to="/expenses/settings" className="mr-auto expenses__nav-link nav-link">
-              Settings
-            </Link>
             <Link to="/expenses/charts" className="mr-auto expenses__nav-link nav-link">
               Charts
             </Link>
@@ -61,7 +60,9 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
         <Container></Container>
         <Switch>
           <Route exact={true} path={'/expenses/schema/:id'} component={ExpensesPage} />
-          <Route exact={true} path={'/expenses/settings'} component={ExpensesSettings} />
+          <Route exact={true} path={'/expenses/types'} component={ExpensesTypesPage} />
+          <Route exact={true} path={'/expenses/sheets'} component={ExpensesSchemasPage} />
+          <Route exact={true} path={'/expenses/parts'} component={ExpensesPricePartPage} />
           <Route exact={true} path={'/expenses/charts'} component={ExpensesCharts} />
           <Route
             exact={true}

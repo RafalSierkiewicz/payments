@@ -6,7 +6,8 @@ import doobie.implicits._
 import doobie.implicits.javasql._
 import doobie.implicits.javatime._
 import doobie.util.fragment.Fragment
-import models.{BarChartData, Expense, ExpenseToCreate, SchemaExpensesChart}
+import models.expenses.{Expense, ExpenseToCreate}
+import models.{BarChartData, SchemaExpensesChart}
 
 class ExpenseDao extends AppDao {
   val updateFields: Fragment = Fragment.const("schema_id, expense_type_id, user_id, name, price, created_at")

@@ -7,21 +7,27 @@ import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
 import models.Charts._
-import models.Expense._
-import models.ExpenseSchema._
-import models.ExpenseType._
-import models.{ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate, User}
+import models.User
+import models.expenses.Expense._
+import models.expenses.ExpensePricePart._
+import models.expenses.ExpenseSchema._
+import models.expenses.ExpenseType._
+import models.expenses.{ExpensePricePartCreate, ExpenseSchemaToCreate, ExpenseToCreate, ExpenseTypeToCreate}
 import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
 import org.http4s.{AuthedRoutes, EntityDecoder, HttpRoutes}
 import services.{AuthService, ExpenseService}
+import utils.SqlStateToResponseMapper._
+
 class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: AuthService[F], xa: Transactor[F])
-    extends Http4sDsl[F]
-    with BaseController {
+    extends BaseController[F] {
   implicit def unsafeLogger = Slf4jLogger.getLogger[F]
 
-  private implicit val expenseToCreate: EntityDecoder[F, ExpenseToCreate]             = jsonOf[F, ExpenseToCreate]
-  private implicit val expenseSchemaToCreate: EntityDecoder[F, ExpenseSchemaToCreate] = jsonOf[F, ExpenseSchemaToCreate]
+  private implicit val expenseToCreate: EntityDecoder[F, ExpenseToCreate]               = jsonOf[F, ExpenseToCreate]
+  private implicit val expenseSchemaToCreate: EntityDecoder[F, ExpenseSchemaToCreate]   = jsonOf[F, ExpenseSchemaToCreate]
+  private implicit val expenseTypeToCreate: EntityDecoder[F, ExpenseTypeToCreate]       = jsonOf[F, ExpenseTypeToCreate]
+  private implicit val expensePricePartCreate: EntityDecoder[F, ExpensePricePartCreate] =
+    jsonOf[F, ExpensePricePartCreate]
+
   private val protectedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
       case GET -> Root / IntVar(id) as user             =>
@@ -50,43 +56,49 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
             .transact(xa)
             .map(exp => exp.asJson)
         )
-      case req @ POST -> Root as _         =>
-        for {
-          expense <- req.req.as[ExpenseToCreate]
-          resp    <-
-            service
-              .insert(expense)
-              .transact(xa)
-              .flatMap(_.map(id => Ok(id.asJson)).left.map {
-                case models.ForeignKeyViolation => UnprocessableEntity("Schema not exist")
-                case _                          => BadRequest()
-              }.merge)
-        } yield resp
 
-      case _ @GET -> Root / "types" as user =>
+      case req @ POST -> Root as _ =>
+        parseBody[ExpenseToCreate](req.req) { expense =>
+          service
+            .insert(expense)
+            .transact(xa)
+            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
+        }
+
+      case GET -> Root / "types" as user =>
         Ok.apply(service.listTypesByCompany(user.companyId).transact(xa).map(_.asJson))
 
-      case req @ POST -> Root / "types" as user  =>
-        Ok.apply(
-          decodeRequest[F, ExpenseTypeToCreate](req.req)
-            .through(_.evalMap(t => service.insertType(user.companyId, t).transact(xa)).map(_.asJson))
-        )
-      case req @ GET -> Root / "schemas" as user =>
+      case req @ POST -> Root / "types" as user =>
+        parseBody[ExpenseTypeToCreate](req.req) { typeToCreate =>
+          service
+            .insertType(user.companyId, typeToCreate)
+            .transact(xa)
+            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
+        }
+
+      case GET -> Root / "schemas" as user =>
         Ok.apply(service.listSchemasByCompany(user.companyId).transact(xa).map(_.asJson))
 
       case req @ POST -> Root / "schemas" as user =>
-        Ok.apply(
-          decodeRequest[F, ExpenseSchemaToCreate](req.req)
-            .through(_.evalMap(t => service.insertSchema(user.companyId, t).transact(xa)).map(_.asJson))
-        )
+        parseBody[ExpenseSchemaToCreate](req.req) { schemaToCreate =>
+          service
+            .insertSchema(user.companyId, schemaToCreate)
+            .transact(xa)
+            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
+        }
+
+      case GET -> Root / "parts" as user =>
+        Ok.apply(service.listPartsByCompany(user.companyId).transact(xa).map(_.asJson))
+
+      case req @ POST -> Root / "parts" as user =>
+        parseBody[ExpensePricePartCreate](req.req) { partToCreate =>
+          service
+            .insertPart(user.companyId, partToCreate)
+            .transact(xa)
+            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
+        }
     }
   }
 
-  private val openRoutes: HttpRoutes[F] = {
-    HttpRoutes.of[F] { case GET -> Root / "hello" =>
-      Ok("hello")
-    }
-  }
-
-  def routes: HttpRoutes[F] = authService.middleware(protectedRoutes) <+> openRoutes
+  def routes: HttpRoutes[F] = authService.middleware(protectedRoutes)
 }

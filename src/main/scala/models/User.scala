@@ -18,5 +18,4 @@ object User {
       ("username", a.username.asJson),
       ("email", a.email.asJson)
     )
-
 }

@@ -3,6 +3,7 @@ import {
   IActionPayloadTyped,
   ICompanyBarCharts,
   IExpense,
+  IExpensePart,
   IExpenseSchema,
   IExpensesStore,
   IExpenseType,
@@ -23,6 +24,7 @@ const defaultExpensesState: IExpensesStore = {
   areExpensesLoading: false,
   types: [],
   schemas: [],
+  parts: [],
 };
 
 const actionHandlers: IActionHandlers<IExpensesStore> = {
@@ -42,6 +44,10 @@ const actionHandlers: IActionHandlers<IExpensesStore> = {
   [actionTypes.expenses.LOAD_ALL_SCHEMAS_SUCCESS]: (state, { payload }: IActionPayloadTyped<IExpenseSchema[]>) => ({
     ...state,
     schemas: payload,
+  }),
+  [actionTypes.expenses.LOAD_ALL_PARTS_SUCCESS]: (state, { payload }: IActionPayloadTyped<IExpensePart[]>) => ({
+    ...state,
+    parts: payload,
   }),
   [actionTypes.expenses.LOAD_SCHEMA_CHART_DATA_SUCCESS]: (
     state,

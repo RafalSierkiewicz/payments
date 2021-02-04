@@ -5,6 +5,7 @@ interface IExpensesStore {
   currentSchemaChartData: ISchemaBarChart;
   companyChart: ICompanyBarCharts;
   areExpensesLoading: boolean;
+  parts: IExpensePart[];
 }
 
 interface IExpense {
@@ -41,6 +42,16 @@ interface IExpenseType {
   id: number;
   name: string;
 }
+interface IExpensePart {
+  id: number;
+  name: string;
+  percentile: number;
+}
+
+interface IExpensePartCreate {
+  name: string;
+  percentile: number;
+}
 
 interface IExpenseTypeCreate {
   name: string;
@@ -76,4 +87,6 @@ export type {
   ISchemaBarChart,
   IBarChart,
   ICompanyBarCharts,
+  IExpensePart,
+  IExpensePartCreate,
 };

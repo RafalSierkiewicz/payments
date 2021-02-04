@@ -1,28 +1,28 @@
 package services
 
 import cats.effect.Bracket
-import dao.{ExpenseDao, ExpenseSchemaDao, ExpenseTypeDao}
-import doobie.util.transactor.Transactor
-import models.{
-  BarChart,
-  BarChartData,
-  CompanySummaryCharts,
+import dao.{ExpenseDao, ExpensePricePartDao, ExpenseSchemaDao, ExpenseTypeDao}
+import doobie.`enum`.SqlState
+import doobie.implicits._
+import models._
+import models.expenses.{
   Expense,
+  ExpensePricePart,
+  ExpensePricePartCreate,
+  ExpenseSchema,
   ExpenseSchemaToCreate,
   ExpenseToCreate,
-  ExpenseTypeToCreate,
-  ForeignKeyViolation,
-  LineChart,
-  NotExists,
-  SchemaExpensesChart,
-  Unexpected
+  ExpenseType,
+  ExpenseTypeToCreate
 }
-import doobie.implicits._
-import doobie.postgres._
 
-class ExpenseService[F[_]](expenseDao: ExpenseDao, expenseTypeDao: ExpenseTypeDao, expenseSchemaDao: ExpenseSchemaDao)(
-  implicit ev: Bracket[F, Throwable]
-) {
+class ExpenseService[F[_]](
+  expenseDao: ExpenseDao,
+  expenseTypeDao: ExpenseTypeDao,
+  expenseSchemaDao: ExpenseSchemaDao,
+  expensePricePartDao: ExpensePricePartDao
+)(implicit ev: Bracket[F, Throwable]) {
+
   def findExpensesBySchemaId(schemaId: Long, companyId: Long): fs2.Stream[doobie.ConnectionIO, Expense] = {
     fs2.Stream.eval(expenseSchemaDao.getById(schemaId, companyId)).flatMap {
       case Some(_) => expenseDao.getBySchemaId(schemaId)
@@ -32,7 +32,7 @@ class ExpenseService[F[_]](expenseDao: ExpenseDao, expenseTypeDao: ExpenseTypeDa
     }
   }
 
-  def getCompanyChartData(companyId: Long) = {
+  def getCompanyChartData(companyId: Long): doobie.ConnectionIO[CompanySummaryCharts] = {
     for {
       chartByType   <-
         expenseDao
@@ -46,7 +46,7 @@ class ExpenseService[F[_]](expenseDao: ExpenseDao, expenseTypeDao: ExpenseTypeDa
     } yield CompanySummaryCharts(chartByType, chartBySchema)
   }
 
-  def getExpensesChartsData(schemaId: Long, companyId: Long) = {
+  def getExpensesChartsData(schemaId: Long, companyId: Long): doobie.ConnectionIO[SchemaExpensesChart] = {
     for {
       _               <- expenseSchemaDao.getById(schemaId, companyId)
       schemaChartData <- expenseDao.getSchemaChartData(schemaId)
@@ -64,29 +64,25 @@ class ExpenseService[F[_]](expenseDao: ExpenseDao, expenseTypeDao: ExpenseTypeDa
     } yield expenses
   }
 
-  def insert(expense: ExpenseToCreate): doobie.ConnectionIO[Either[models.Error, Long]] = {
-    expenseDao
-      .insert(expense)
-      .attemptSqlState
-      .map(_.left.map {
-        case sqlstate.class23.FOREIGN_KEY_VIOLATION => ForeignKeyViolation
-        case _                                      => Unexpected
-      })
-  }
+  def insert(expense: ExpenseToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
+    expenseDao.insert(expense).attemptSqlState
 
-  def listTypesByCompany(companyId: Long) = {
+  def listTypesByCompany(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpenseType] =
     expenseTypeDao.listByCompany(companyId)
-  }
 
-  def insertType(companyId: Long, expenseType: ExpenseTypeToCreate) = {
-    expenseTypeDao.insert(companyId, expenseType)
-  }
+  def insertType(companyId: Long, expenseType: ExpenseTypeToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
+    expenseTypeDao.insert(companyId, expenseType).attemptSqlState
 
-  def insertSchema(companyId: Long, expenseType: ExpenseSchemaToCreate) = {
-    expenseSchemaDao.insert(companyId, expenseType)
-  }
+  def insertSchema(companyId: Long, expenseSchema: ExpenseSchemaToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
+    expenseSchemaDao.insert(companyId, expenseSchema).attemptSqlState
 
-  def listSchemasByCompany(companyId: Long) = {
+  def listSchemasByCompany(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpenseSchema] =
     expenseSchemaDao.getCompanySchemas(companyId)
-  }
+
+  def listPartsByCompany(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpensePricePart] =
+    expensePricePartDao.list(companyId)
+
+  def insertPart(companyId: Long, part: ExpensePricePartCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
+    expensePricePartDao.insert(companyId, part).attemptSqlState
+
 }

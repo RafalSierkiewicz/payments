@@ -1,4 +1,5 @@
-package models
+package models.expenses
+
 import java.sql.Timestamp
 
 import io.circe.generic.semiauto._

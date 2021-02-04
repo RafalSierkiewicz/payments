@@ -11,24 +11,17 @@ import utils.PasswordHasher
 
 class UserService[F[_]: Sync](userDao: UserDao)(implicit ev: Bracket[F, Throwable]) {
 
-  def getByEmail(email: String): doobie.ConnectionIO[Option[User]] = {
+  def getByEmail(email: String): doobie.ConnectionIO[Option[User]] =
     userDao.getByEmail(email)
-  }
 
-  def getById(id: Long): doobie.ConnectionIO[Option[User]] = {
+  def getById(id: Long): doobie.ConnectionIO[Option[User]] =
     userDao.getById(id)
-  }
 
-  def getCompanyUsers(companyId: Long) = {
+  def getCompanyUsers(companyId: Long) =
     userDao.listCompanyUsers(companyId)
-  }
 
-  def insert(user: UserToCreate, companyId: Long): doobie.ConnectionIO[Long] = {
-    PasswordHasher.hashPassword(user.password) match {
-      case Some(pass) => userDao.insert(user.copy(password = pass), companyId)
-      case None       => throw new Exception("Cannot perform operation. Hashing failed")
-    }
-  }
+  def insert(user: UserToCreate, companyId: Long): doobie.ConnectionIO[Option[Long]] =
+    PasswordHasher.hashPassword(user.password).traverse(pass => userDao.insert(user.copy(password = pass), companyId))
 
   def update(userUpdate: UserUpdateModel, userId: Int, companyId: Long): doobie.ConnectionIO[Option[Long]] = {
     for {

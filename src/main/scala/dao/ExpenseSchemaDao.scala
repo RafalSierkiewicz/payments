@@ -7,7 +7,7 @@ import doobie.util.fragment.Fragment
 import doobie.implicits._
 import doobie.implicits.javasql._
 import doobie.implicits.javatime._
-import models.{ExpenseSchema, ExpenseSchemaToCreate}
+import models.expenses.{ExpenseSchema, ExpenseSchemaToCreate}
 
 class ExpenseSchemaDao extends AppDao {
 

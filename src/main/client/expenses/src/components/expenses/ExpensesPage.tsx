@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 import { ExpensesList } from './ExpensesList';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
+import { ExpenseSummary } from './ExpenseSummary';
 
 const expenseSchema = Yup.object().shape({
   name: Yup.string(),
@@ -137,7 +138,14 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
             </Form>
           )}
         </Formik>
-        {this.props.areExpensesLoading ? <p>Loading</p> : <ExpensesList />}
+        {this.props.areExpensesLoading ? (
+          <p>Loading</p>
+        ) : (
+          <>
+            <ExpenseSummary />
+            <ExpensesList />
+          </>
+        )}
       </Container>
     );
   }

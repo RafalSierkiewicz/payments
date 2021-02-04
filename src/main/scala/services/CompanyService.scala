@@ -13,7 +13,10 @@ class CompanyService[F[_]](dao: CompanyDao, userService: UserService[F], xa: Tra
   def createWithUser(company: CompanyToCreate, user: UserToCreate): F[Long] = {
     (for {
       id     <- dao.insert(company)
-      userId <- userService.insert(user, id)
+      userId <- userService.insert(user, id).map {
+        case Some(value) => value
+        case None        => throw new Exception("User cannot be created")
+      }
     } yield userId).transact(xa)
   }
 }
