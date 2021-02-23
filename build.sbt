@@ -31,5 +31,6 @@ libraryDependencies ++= Seq(
   "org.flywaydb"              % "flyway-core"            % "7.3.2",
   "org.postgresql"            % "postgresql"             % "42.2.9",
   "com.pauldijou"            %% "jwt-circe"              % "4.2.0",
-  "org.mindrot"               % "jbcrypt"                % "0.3m"
+  "org.mindrot"               % "jbcrypt"                % "0.3m",
+  "org.scalatest"            %% "scalatest"              % "3.2.2" % Test
 )

@@ -1,6 +1,6 @@
 import { IActionTyped } from '../models/common';
 import { call, put, takeLatest } from 'redux-saga/effects';
-import { actionTypes } from '../actions';
+import { actions, actionTypes } from 'actions';
 import axios, { AxiosResponse } from 'axios';
 import { ILogin, IRegister } from '../models/auth';
 import { push } from 'connected-react-router';
@@ -10,6 +10,7 @@ function* login(action: IActionTyped<ILogin>) {
   try {
     const token = yield call(loginCall, action.payload);
     localStorage.setItem(JWT_KEY, token);
+    yield put(actions.users.loadAllUsersStart());
     yield put(push('/'));
   } catch (error) {
     console.log('Error', error);

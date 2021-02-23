@@ -10,6 +10,7 @@ case class Expense(
   schemaId: Long,
   typeId: Long,
   userId: Long,
+  pricePart: Long,
   name: Option[String],
   price: Double,
   createdAt: Timestamp
@@ -18,6 +19,7 @@ case class ExpenseToCreate(
   typeId: Long,
   userId: Long,
   schemaId: Long,
+  pricePart: Long,
   name: Option[String],
   price: Double,
   createdAt: Option[Timestamp]

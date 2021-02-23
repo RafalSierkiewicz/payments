@@ -12,6 +12,8 @@ export const ExpenseSummary: React.FC = React.memo(() => {
         <tr>
           <th>Users</th>
           <th>Payed</th>
+          <th>Own</th>
+          <th>Fully payed</th>
           <th>To return</th>
         </tr>
       </thead>
@@ -22,12 +24,16 @@ export const ExpenseSummary: React.FC = React.memo(() => {
               <td>{user.username}</td>
               <td>0</td>
               <td>0</td>
+              <td>0</td>
+              <td>0</td>
             </tr>
           );
         })}
         <tr>
           <td>Summary</td>
           <td>Total</td>
+          <td>-</td>
+          <td>-</td>
           <td>-</td>
         </tr>
       </tbody>
