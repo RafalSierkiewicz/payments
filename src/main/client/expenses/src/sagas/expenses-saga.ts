@@ -17,9 +17,10 @@ function* loadSchemaExpenses(action: IActionTyped<number>) {
   try {
     const expenses = yield call(fetchSchemaExpenseCall, action.payload);
     const chartData = yield call(fetchSchemaChartDataCall, action.payload);
-
+    const summary = yield call(fetchSchemaSummaryCall, action.payload);
     yield put(actions.expenses.loadSchemaExpensesSuccess(expenses));
     yield put(actions.expenses.loadSchemaChartDataSuccess(chartData));
+    yield put(actions.expenses.loadSchemaSummarySuccess(summary));
   } catch {
     console.log('Error');
   }
@@ -29,6 +30,9 @@ const fetchSchemaExpenseCall = (id: number) =>
   axiosInstance.get(`/api/expenses/${id}`).then((response: AxiosResponse) => response.data);
 
 const fetchSchemaChartDataCall = (id: number) =>
+  axiosInstance.get(`/api/expenses/${id}/summary/chart`).then((response: AxiosResponse) => response.data);
+
+const fetchSchemaSummaryCall = (id: number) =>
   axiosInstance.get(`/api/expenses/${id}/summary`).then((response: AxiosResponse) => response.data);
 
 function* loadAllExpenseTypes() {

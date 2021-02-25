@@ -8,6 +8,7 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
 import models.Charts._
 import models.User
+import models.expenses.ExpensesSummary._
 import models.expenses.Expense._
 import models.expenses.ExpensePricePart._
 import models.expenses.ExpenseSchema._
@@ -30,7 +31,7 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
 
   private val protectedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
-      case GET -> Root / IntVar(id) as user             =>
+      case GET -> Root / IntVar(id) as user                       =>
         Ok.apply(
           service
             .findExpensesBySchemaId(id, user.companyId)
@@ -41,10 +42,17 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
               fs2.Stream.empty
             })
         )
-      case GET -> Root / IntVar(id) / "summary" as user =>
+      case GET -> Root / IntVar(id) / "summary" / "chart" as user =>
         Ok.apply(
           service
             .getExpensesChartsData(id, user.companyId)
+            .transact(xa)
+            .map(exp => exp.asJson)
+        )
+      case GET -> Root / IntVar(id) / "summary" as user           =>
+        Ok.apply(
+          service
+            .getExpenseSchemaSummary(id, user.companyId)
             .transact(xa)
             .map(exp => exp.asJson)
         )

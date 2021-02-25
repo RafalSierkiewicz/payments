@@ -6,5 +6,13 @@ const getParts = (state: IAppState) => state.expensesStore.parts;
 const getExpensesSchemas = (state: IAppState) => state.expensesStore.schemas;
 const getSchemaChartData = (state: IAppState) => state.expensesStore.currentSchemaChartData;
 const getCompanyChartData = (state: IAppState) => state.expensesStore.companyChart;
-
-export { getExpenses, getTypes, getExpensesSchemas, getSchemaChartData, getCompanyChartData, getParts };
+const getSchemaSummary = (state: IAppState) => state.expensesStore.currentSchemaSummary;
+export {
+  getExpenses,
+  getTypes,
+  getExpensesSchemas,
+  getSchemaChartData,
+  getCompanyChartData,
+  getParts,
+  getSchemaSummary,
+};

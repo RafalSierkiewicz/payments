@@ -2,6 +2,7 @@ interface IExpensesStore {
   expenses: IExpense[];
   types: IExpenseType[];
   schemas: IExpenseSchema[];
+  currentSchemaSummary: ISummary;
   currentSchemaChartData: ISchemaBarChart;
   companyChart: ICompanyBarCharts;
   areExpensesLoading: boolean;
@@ -76,6 +77,22 @@ interface IExpenseCreate {
   schemaId: number;
 }
 
+interface ISummary {
+  usersSummary: IUserSummary[];
+  total: ITotalSummary;
+}
+
+interface IUserSummary {
+  userId: number;
+  summary: ITotalSummary;
+}
+
+interface ITotalSummary {
+  payed: number;
+  pricePartsMap: Map<string, number>;
+  toReturn: number;
+}
+
 export type {
   IExpense,
   IExpensesStore,
@@ -89,4 +106,7 @@ export type {
   ICompanyBarCharts,
   IExpensePart,
   IExpensePartCreate,
+  IUserSummary,
+  ITotalSummary,
+  ISummary,
 };

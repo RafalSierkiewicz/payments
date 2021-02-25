@@ -27,6 +27,11 @@ const rootStore = (state: any, action: any) => {
 };
 const store = createStore(rootStore, composeEnhancers(applyMiddleware(sagaMiddleware, routerMiddleware(appHistory))));
 
+axios.interceptors.request.use((config) => {
+  config.headers.Authorization = `Bearer ${localStorage.getItem(JWT_KEY)}`;
+  return config;
+});
+
 axios.interceptors.response.use(
   (resp) => resp,
   (error) => {
@@ -36,17 +41,7 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-const checkIfLogged = () => {
-  const authToken = localStorage.getItem(JWT_KEY);
-  if (authToken) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-  } else {
-    axios.defaults.headers.common['Authorization'] = null;
-  }
-};
-checkIfLogged();
-
 sagaMiddleware.run(rootSaga);
+store.dispatch(actions.users.loadAllUsersStart());
 
 export { store, appHistory };

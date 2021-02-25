@@ -7,11 +7,11 @@ import org.scalatest.matchers._
 import utils.ExpenseCalculator
 class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
   val (own, half, full, returned, quarter) = (
-    createPricePart(0, "Own", id = 0),
-    createPricePart(0.5, "Half"),
-    createPricePart(1, "Full", id = 2),
-    createPricePart(1, "Returned", id = 3, isReturn = true),
-    createPricePart(0.25, "Quarter", id = 4)
+    createPricePart(0, "own", id = 0),
+    createPricePart(0.5, "half"),
+    createPricePart(1, "full", id = 2),
+    createPricePart(1, "returned", id = 3, isReturn = true),
+    createPricePart(0.25, "quarter", id = 4)
   )
   val pricePartsList                       = Vector(own, half, full, returned, quarter)
 
@@ -38,10 +38,10 @@ class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
     val expectedResult =
       ExpensesSummary(
         Vector(
-          UserSummary(1, TotalSummary(600, Map(half -> 600), 300 - 750)),
-          UserSummary(2, TotalSummary(1500, Map(half -> 1500), 750 - 300))
+          UserSummary(1, TotalSummary(600, Map(half.name -> 600), 300 - 750)),
+          UserSummary(2, TotalSummary(1500, Map(half.name -> 1500), 750 - 300))
         ),
-        TotalSummary(2100, Map(half -> 2100))
+        TotalSummary(2100, Map(half.name -> 2100))
       )
 
     result shouldBe expectedResult
@@ -72,19 +72,19 @@ class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
     val expectedResult =
       ExpensesSummary(
         Vector(
-          UserSummary(1, TotalSummary(600, Map(quarter -> 600), -600)),
-          UserSummary(2, TotalSummary(1600, Map(quarter -> 1600), 400)),
-          UserSummary(3, TotalSummary(1000, Map(quarter -> 1000), -200)),
-          UserSummary(4, TotalSummary(1600, Map(quarter -> 1600), 400))
+          UserSummary(1, TotalSummary(600, Map(quarter.name -> 600), -600)),
+          UserSummary(2, TotalSummary(1600, Map(quarter.name -> 1600), 400)),
+          UserSummary(3, TotalSummary(1000, Map(quarter.name -> 1000), -200)),
+          UserSummary(4, TotalSummary(1600, Map(quarter.name -> 1600), 400))
         ),
-        TotalSummary(4800, Map(quarter -> 4800))
+        TotalSummary(4800, Map(quarter.name -> 4800))
       )
 
     result.usersSummary should contain theSameElementsAs expectedResult.usersSummary
     result.total.pricePartsMap should contain theSameElementsAs expectedResult.total.pricePartsMap
   }
 
-  it should "correctly calculate summary for two users with returns with only half price part" in {
+  it should "correctly calculate summary for two users with returns with only half.name price part" in {
     val expensesList = Vector(
       createExpense(100),
       createExpense(200),
@@ -105,10 +105,10 @@ class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
     val expectedResult =
       ExpensesSummary(
         Vector(
-          UserSummary(1, TotalSummary(650, Map(half -> 600, returned -> 50), -490)),
-          UserSummary(2, TotalSummary(1590, Map(half -> 1500, returned -> 90), 490))
+          UserSummary(1, TotalSummary(650, Map(half.name -> 600, returned.name -> 50), -490)),
+          UserSummary(2, TotalSummary(1590, Map(half.name -> 1500, returned.name -> 90), 490))
         ),
-        TotalSummary(2240, Map(half -> 2100, returned -> 140))
+        TotalSummary(2240, Map(half.name -> 2100, returned.name -> 140))
       )
     result.usersSummary should contain theSameElementsAs expectedResult.usersSummary
     result.total shouldBe expectedResult.total
@@ -136,10 +136,13 @@ class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
     val expectedResult =
       ExpensesSummary(
         Vector(
-          UserSummary(1, TotalSummary(650, Map(half -> 300, own -> 100, full -> 200, returned -> 50), -300)),
-          UserSummary(2, TotalSummary(1600, Map(half -> 1200, own -> 300, full -> 100), 300))
+          UserSummary(
+            1,
+            TotalSummary(650, Map(half.name -> 300, own.name -> 100, full.name -> 200, returned.name -> 50), -300)
+          ),
+          UserSummary(2, TotalSummary(1600, Map(half.name -> 1200, own.name -> 300, full.name -> 100), 300))
         ),
-        TotalSummary(2250, Map(half -> 1500, own -> 400, full -> 300, returned -> 50), 0)
+        TotalSummary(2250, Map(half.name -> 1500, own.name -> 400, full.name -> 300, returned.name -> 50), 0)
       )
 
     result.usersSummary should contain theSameElementsAs expectedResult.usersSummary
@@ -151,6 +154,6 @@ class ExpenseCalculatorTest extends AnyFlatSpec with should.Matchers {
   }
 
   private def createPricePart(percentile: Double, name: String, id: Long = 1, isReturn: Boolean = false) = {
-    ExpensePricePart(id, 1, name, percentile, isReturn)
+    ExpensePricePart(id, 1, name, percentile)
   }
 }

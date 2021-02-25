@@ -13,7 +13,6 @@ const AppBase: React.FC = () => {
         <Switch>
           <Route path={'/expenses'} component={ExpensesModule} />
           <Route path={'/users'} component={UsersModule} />
-
           <Redirect to={'/'} />
         </Switch>
       </div>

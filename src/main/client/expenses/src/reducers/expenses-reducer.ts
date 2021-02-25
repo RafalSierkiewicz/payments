@@ -8,6 +8,7 @@ import {
   IExpensesStore,
   IExpenseType,
   ISchemaBarChart,
+  ISummary,
 } from 'models';
 import { actionTypes } from 'actions';
 import { createReducer } from 'utils/redux-helpers';
@@ -18,6 +19,14 @@ const defaultExpensesState: IExpensesStore = {
     lineChart: { data: [] },
     barChart: {
       data: [],
+    },
+  },
+  currentSchemaSummary: {
+    usersSummary: [],
+    total: {
+      payed: 0,
+      pricePartsMap: new Map<string, number>(),
+      toReturn: 0,
     },
   },
   companyChart: { chartByType: { data: [] }, chartBySchema: { data: [] } },
@@ -44,6 +53,10 @@ const actionHandlers: IActionHandlers<IExpensesStore> = {
   [actionTypes.expenses.LOAD_ALL_SCHEMAS_SUCCESS]: (state, { payload }: IActionPayloadTyped<IExpenseSchema[]>) => ({
     ...state,
     schemas: payload,
+  }),
+  [actionTypes.expenses.LOAD_SCHEMA_SUMMARY_SUCCESS]: (state, { payload }: IActionPayloadTyped<ISummary>) => ({
+    ...state,
+    currentSchemaSummary: payload,
   }),
   [actionTypes.expenses.LOAD_ALL_PARTS_SUCCESS]: (state, { payload }: IActionPayloadTyped<IExpensePart[]>) => ({
     ...state,

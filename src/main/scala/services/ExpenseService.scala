@@ -13,8 +13,10 @@ import models.expenses.{
   ExpenseSchemaToCreate,
   ExpenseToCreate,
   ExpenseType,
-  ExpenseTypeToCreate
+  ExpenseTypeToCreate,
+  ExpensesSummary
 }
+import utils.ExpenseCalculator
 
 class ExpenseService[F[_]](
   expenseDao: ExpenseDao,
@@ -57,11 +59,12 @@ class ExpenseService[F[_]](
     } yield SchemaExpensesChart(BarChart(schemaChartData), LineChart(companySummary.map(_.sum)))
   }
 
-  def getExpenseSchemaSummary(schemaId: Long, companyId: Long): fs2.Stream[doobie.ConnectionIO, Expense] = {
+  def getExpenseSchemaSummary(schemaId: Long, companyId: Long): doobie.ConnectionIO[ExpensesSummary] = {
+    //can be made on stream TODO
     for {
-      _        <- fs2.Stream.eval(expenseSchemaDao.getById(schemaId, companyId))
-      expenses <- expenseDao.getBySchemaId(schemaId)
-    } yield expenses
+      parts    <- expensePricePartDao.list(companyId).compile.toVector
+      expenses <- expenseDao.getBySchemaId(schemaId).compile.toVector
+    } yield ExpenseCalculator.calculate(expenses, parts)
   }
 
   def insert(expense: ExpenseToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =

@@ -43,7 +43,7 @@ const ExpensesList: React.FC = () => {
                             <Col sm={4}>{`${expense.name}`}</Col>
                             <Col sm={3}>{`${expense.typeId}`}</Col>
                             <Col sm={2}>{`${
-                              _.find(users, (user: IUser) => user.id === expense.userId)!!.username
+                              (_.find(users, (user: IUser) => user.id === expense.userId) || { username: '' }).username
                             }`}</Col>
                             <Col sm={2}>{`${expense.price}`}</Col>
                             <Col sm>

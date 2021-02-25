@@ -10,8 +10,8 @@ function* login(action: IActionTyped<ILogin>) {
   try {
     const token = yield call(loginCall, action.payload);
     localStorage.setItem(JWT_KEY, token);
-    yield put(actions.users.loadAllUsersStart());
     yield put(push('/'));
+    yield put(actions.users.loadAllUsersStart());
   } catch (error) {
     console.log('Error', error);
   }

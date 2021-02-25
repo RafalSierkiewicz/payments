@@ -12,6 +12,7 @@ import {
   IExpenseType,
   IExpenseTypeCreate,
   ISchemaBarChart,
+  ISummary,
 } from 'models';
 
 const loadAllExpensesStart = (): IActionEmpty => ({
@@ -84,6 +85,11 @@ const loadSchemaChartDataSuccess = (payload: ISchemaBarChart[]): IActionTyped<IS
   type: actionTypes.LOAD_SCHEMA_CHART_DATA_SUCCESS,
 });
 
+const loadSchemaSummarySuccess = (payload: ISummary): IActionTyped<ISummary> => ({
+  payload,
+  type: actionTypes.LOAD_SCHEMA_SUMMARY_SUCCESS,
+});
+
 const loadAllTypesSuccess = (payload: IExpenseType[]): IActionTyped<IExpenseType[]> => ({
   payload,
   type: actionTypes.LOAD_ALL_TYPES_SUCCESS,
@@ -99,6 +105,7 @@ const actionTypes = {
 
   LOAD_SCHEMA_EXPENSES_SUCCESS: 'LOAD_SCHEMA_EXPENSES_SUCCESS',
   LOAD_SCHEMA_CHART_DATA_SUCCESS: 'LOAD_SCHEMA_CHART_DATA_SUCCESS',
+  LOAD_SCHEMA_SUMMARY_SUCCESS: 'LOAD_SCHEMA_SUMMARY_SUCCESS',
   LOAD_ALL_SCHEMAS_START: 'LOAD_ALL_SCHEMAS_START',
   LOAD_ALL_SCHEMAS_SUCCESS: 'LOAD_ALL_SCHEMAS_SUCCESS',
   CREATE_EXPENSE: 'CREATE_EXPENSE',
@@ -127,6 +134,7 @@ const actions = {
   loadSchemaChartDataSuccess,
   loadCompanyBarChartStart,
   loadCompanyBarChartSuccess,
+  loadSchemaSummarySuccess,
 };
 
 export { actionTypes, actions };

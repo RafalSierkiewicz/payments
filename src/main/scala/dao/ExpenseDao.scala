@@ -10,7 +10,8 @@ import models.expenses.{Expense, ExpenseToCreate}
 import models.{BarChartData, SchemaExpensesChart}
 
 class ExpenseDao extends AppDao {
-  val updateFields: Fragment = Fragment.const("schema_id, expense_type_id, user_id, name, price, created_at")
+  val updateFields: Fragment =
+    Fragment.const("schema_id, expense_type_id, user_id, price_part, name, price, created_at")
   val tableName: Fragment    = Fragment.const("expenses")
 
   def getBySchemaId(schemaId: Long): fs2.Stream[doobie.ConnectionIO, Expense] = {
