@@ -25,7 +25,7 @@ const defaultExpensesState: IExpensesStore = {
     usersSummary: [],
     total: {
       payed: 0,
-      pricePartsMap: new Map<string, number>(),
+      pricePartsMap: {},
       toReturn: 0,
     },
   },

@@ -21,8 +21,13 @@ class ExpenseDao extends AppDao {
   def insert(expense: ExpenseToCreate): doobie.ConnectionIO[Long] = {
     val now = expense.createdAt
       .getOrElse(Timestamp.from(Instant.now()))
-    insertQ(fr"(${expense.schemaId}, ${expense.typeId},${expense.userId}, ${expense.name}, ${expense.price}, ${now})")
+    insertQ(
+      fr"(${expense.schemaId}, ${expense.typeId},${expense.userId}, ${expense.pricePart},${expense.name}, ${expense.price}, ${now})"
+    )
       .withUniqueGeneratedKeys[Long]("id")
+  }
+  def deleteBySchemaId(schemaId: Long): doobie.ConnectionIO[Int] = {
+    deleteQ(fr"where schema_id = ${schemaId}").run
   }
 
   def getSchemaChartData(schemaId: Long): doobie.ConnectionIO[List[BarChartData]] = {

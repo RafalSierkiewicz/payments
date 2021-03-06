@@ -3,7 +3,7 @@
     "baseUrl": "./src/",
     "rootDir": "src",
     "target": "es5",
-    "lib": ["es6", "dom", "dom.iterable", "esnext"],
+    "lib": ["es6", "dom", "dom.iterable"],
     "module": "esnext",
     "moduleResolution": "node",
     "jsx": "react-jsx",

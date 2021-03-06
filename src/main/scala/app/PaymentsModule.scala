@@ -1,13 +1,14 @@
 package app
 import app.config.AppConfig
-import cats.effect.Sync
+import cats.effect.{Blocker, ContextShift, Sync}
 import com.softwaremill.macwire.wire
-import controllers.{ExpenseController, UserController}
+import controllers.{ExpenseController, HomeController, UserController}
 import dao.{CompanyDao, ExpenseDao, ExpensePricePartDao, ExpenseSchemaDao, ExpenseTypeDao, UserDao}
 import doobie.util.transactor.Transactor
 import services.{AuthService, CompanyService, ExpenseService, UserService}
 
-class PaymentsModule[F[_]: Sync](transactor: Transactor[F], config: AppConfig) extends Module[F] {
+class PaymentsModule[F[_]: Sync: ContextShift](transactor: Transactor[F], config: AppConfig, blocker: Blocker)
+    extends Module[F] {
 
   lazy val expenseTypeDao: ExpenseTypeDao           = wire[ExpenseTypeDao]
   lazy val expenseSchemaDao: ExpenseSchemaDao       = wire[ExpenseSchemaDao]
@@ -28,11 +29,17 @@ class PaymentsModule[F[_]: Sync](transactor: Transactor[F], config: AppConfig) e
   lazy val expenseService: ExpenseService[F]                = wire[ExpenseService[F]]
   override lazy val expenseController: ExpenseController[F] = wire[ExpenseController[F]]
 
+  override lazy val homeController: HomeController[F] = wire[HomeController[F]]
+
 }
 
 object PaymentsModule {
 
-  def make[F[_]: Sync](transactor: Transactor[F], config: AppConfig): PaymentsModule[F] = {
-    new PaymentsModule[F](transactor, config)
+  def make[F[_]: Sync: ContextShift](
+    transactor: Transactor[F],
+    config: AppConfig,
+    blocker: Blocker
+  ): PaymentsModule[F] = {
+    new PaymentsModule[F](transactor, config, blocker)
   }
 }

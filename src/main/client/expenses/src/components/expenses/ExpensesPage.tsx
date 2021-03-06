@@ -3,7 +3,7 @@ import { Button, Col, Container, Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { Formik } from 'formik';
 import { actions } from 'actions';
-import { IAppState, IExpense, IExpenseType, IUser } from 'models';
+import { IAppState, IExpense, IExpensePart, IExpenseType, IUser } from 'models';
 import * as Yup from 'yup';
 import * as _ from 'lodash';
 import { ExpensesList } from './ExpensesList';
@@ -16,6 +16,7 @@ const expenseSchema = Yup.object().shape({
   price: Yup.number().required().positive().min(1),
   typeName: Yup.string().required(),
   user: Yup.string().required(),
+  part: Yup.string().required(),
 });
 
 interface SchemaIdRouteProps {
@@ -28,6 +29,7 @@ interface IExpensesPageProps extends RouteComponentProps<SchemaIdRouteProps> {
   types: IExpenseType[];
   users: IUser[];
   expenses: IExpense[];
+  priceParts: IExpensePart[];
   areExpensesLoading: boolean;
 }
 
@@ -49,12 +51,13 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
   }
 
   render() {
-    const { dispatch, types, users, schemaId } = this.props;
+    const { dispatch, types, users, schemaId, priceParts } = this.props;
     const defaultExpenseCreate = {
       name: '',
       price: 0.0,
       typeName: _.head(_.map(types, (t: IExpenseType) => t.name)) || '',
       user: _.head(_.map(users, (u: IUser) => u.username || u.email)) || '',
+      part: _.head(_.map(priceParts, (u: IExpensePart) => u.name)) || '',
     };
 
     return (
@@ -70,9 +73,12 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                 typeId: _.find(types, (t: IExpenseType) => t.name === values.typeName)!!.id,
                 userId: _.find(users, (t: IUser) => t.username === values.user || t.email === values.user)!!.id,
                 schemaId: schemaId,
+                pricePart: _.find(priceParts, (p: IExpensePart) => p.name === values.part)!!.id,
               })
             );
-            act.resetForm({ values: { typeName: values.typeName, name: '', price: 0, user: values.user } });
+            act.resetForm({
+              values: { typeName: values.typeName, name: '', price: 0, user: values.user, part: values.part },
+            });
             act.setStatus({ success: true });
             act.setSubmitting(false);
             this.inputRef.current!.focus();
@@ -81,18 +87,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
           {({ handleSubmit, handleChange, values, errors }) => (
             <Form onSubmit={handleSubmit}>
               <Form.Row>
-                <Form.Group as={Col} controlId="expenseFormName" className="first">
-                  <Form.Control
-                    ref={this.inputRef}
-                    type="text"
-                    placeholder="Enter expense name"
-                    name="name"
-                    value={values.name}
-                    onChange={handleChange}
-                    isInvalid={!!errors.name}
-                  />
-                </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormPrice" className="second">
+                <Form.Group as={Col} controlId="expenseFormPrice">
                   <Form.Control
                     type="number"
                     placeholder="Enter price"
@@ -102,7 +97,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     isInvalid={!!errors.price}
                   />
                 </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormType" className="third">
+                <Form.Group as={Col} controlId="expenseFormType">
                   <Form.Control
                     as="select"
                     placeholder="Select type"
@@ -116,7 +111,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     })}
                   </Form.Control>
                 </Form.Group>
-                <Form.Group as={Col} controlId="expenseFormUser" className="fourth">
+                <Form.Group as={Col} controlId="expenseFormUser">
                   <Form.Control
                     as="select"
                     placeholder="Select user"
@@ -129,7 +124,31 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                     })}
                   </Form.Control>
                 </Form.Group>
-                <div className="fifth">
+                <Form.Group as={Col} controlId="expenseFormUser">
+                  <Form.Control
+                    as="select"
+                    placeholder="Select part"
+                    name="part"
+                    value={values.part}
+                    onChange={handleChange}
+                  >
+                    {_.map(priceParts, (p: IExpensePart) => {
+                      return <option id={p.id.toString()}>{p.name}</option>;
+                    })}
+                  </Form.Control>
+                </Form.Group>
+                <Form.Group as={Col} controlId="expenseFormName">
+                  <Form.Control
+                    ref={this.inputRef}
+                    type="text"
+                    placeholder="Enter expense name"
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                    isInvalid={!!errors.name}
+                  />
+                </Form.Group>
+                <div>
                   <Button size="sm" variant="primary" type="submit">
                     Submit
                   </Button>
@@ -157,6 +176,7 @@ const mapStateToProps = (state: IAppState, props: IExpensesPageProps) => {
     users: state.usersStore.users,
     expenses: state.expensesStore.expenses,
     schemaId: Number(props.match.params['id']),
+    priceParts: state.expensesStore.parts,
     areExpensesLoading: state.expensesStore.areExpensesLoading,
   };
 };

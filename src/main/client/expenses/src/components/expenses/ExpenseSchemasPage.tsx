@@ -4,11 +4,13 @@ import { ExpensesTypeForm } from './forms/ExpenseSettingTypeForm';
 import { ExpensesSchemaForm } from './forms/ExpenseSettingSchemaForm';
 import * as _ from 'lodash';
 import { IExpenseSchema, IExpenseType } from '../../models/expenses';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getExpensesSchemas } from '../../selectors';
+import { actions } from 'actions';
 
 const ExpensesSchemasPage: React.FC = React.memo(() => {
   const schemas = useSelector(getExpensesSchemas);
+  const dispatch = useDispatch();
   return (
     <Container>
       <ExpensesSchemaForm />
@@ -19,7 +21,9 @@ const ExpensesSchemasPage: React.FC = React.memo(() => {
               <Row noGutters={true} className="align-items-center">
                 <Col sm={11}>{`${schema.name}`}</Col>
                 <Col sm>
-                  <Button variant="danger">Remove</Button>
+                  <Button variant="danger" onClick={() => dispatch(actions.expenses.deleteExpenseSchema(schema))}>
+                    Remove
+                  </Button>
                 </Col>
               </Row>
             </ListGroup.Item>

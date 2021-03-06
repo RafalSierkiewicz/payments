@@ -10,6 +10,9 @@ class ExpenseTypeDao extends AppDao {
   def insert(companyId: Long, expenseTypeToCreate: ExpenseTypeToCreate): doobie.ConnectionIO[Long] = {
     insertQ(fr"($companyId, ${expenseTypeToCreate.name})").withUniqueGeneratedKeys[Long]("id")
   }
+  def delete(id: Long, companyId: Long): doobie.ConnectionIO[Int] = {
+    deleteQ(fr"where id = ${id} and company_id = ${companyId}").run
+  }
 
   def getByName(companyId: Long, name: String): doobie.ConnectionIO[Option[ExpenseType]] = {
     selectQ[ExpenseType](fr"where company_id=${companyId} and name=${name}").option

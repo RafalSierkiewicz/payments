@@ -31,17 +31,30 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
 
   private val protectedRoutes: AuthedRoutes[User, F] = {
     AuthedRoutes.of {
-      case GET -> Root / IntVar(id) as user                       =>
+      case GET -> Root / IntVar(id) as user =>
         Ok.apply(
           service
             .findExpensesBySchemaId(id, user.companyId)
             .transact(xa)
             .map(exp => exp.asJson)
-            .handleErrorWith(e => {
-              Logger[F].error(s"Error while retrieving data: ${e.getMessage}")
-              fs2.Stream.empty
-            })
         )
+
+      case req @ POST -> Root as _ =>
+        parseBody[ExpenseToCreate](req.req) { expense =>
+          service
+            .insert(expense)
+            .transact(xa)
+            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
+        }
+
+      case DELETE -> Root / IntVar(schemaId) / "expense" / IntVar(id) as user =>
+        Ok.apply(
+          service
+            .deleteExpenseById(schemaId, user.companyId, id)
+            .transact(xa)
+            .map(exp => exp.asJson)
+        )
+
       case GET -> Root / IntVar(id) / "summary" / "chart" as user =>
         Ok.apply(
           service
@@ -65,14 +78,6 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
             .map(exp => exp.asJson)
         )
 
-      case req @ POST -> Root as _ =>
-        parseBody[ExpenseToCreate](req.req) { expense =>
-          service
-            .insert(expense)
-            .transact(xa)
-            .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
-        }
-
       case GET -> Root / "types" as user =>
         Ok.apply(service.listTypesByCompany(user.companyId).transact(xa).map(_.asJson))
 
@@ -83,6 +88,9 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
             .transact(xa)
             .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
         }
+
+      case DELETE -> Root / "types" / IntVar(id) as user =>
+        service.deleteType(id, user.companyId).transact(xa).flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
 
       case GET -> Root / "schemas" as user =>
         Ok.apply(service.listSchemasByCompany(user.companyId).transact(xa).map(_.asJson))
@@ -95,6 +103,9 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
             .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
         }
 
+      case DELETE -> Root / "schemas" / IntVar(id) as user =>
+        Ok.apply(service.deleteSchema(id, user.companyId).transact(xa).map(_.asJson))
+
       case GET -> Root / "parts" as user =>
         Ok.apply(service.listPartsByCompany(user.companyId).transact(xa).map(_.asJson))
 
@@ -105,6 +116,9 @@ class ExpenseController[F[_]: Sync](service: ExpenseService[F], authService: Aut
             .transact(xa)
             .flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
         }
+
+      case DELETE -> Root / "parts" / IntVar(id) as user =>
+        service.deletePart(id, user.companyId).transact(xa).flatMap(_.map(id => Ok(id.asJson)).sqlStateToResponse)
     }
   }
 

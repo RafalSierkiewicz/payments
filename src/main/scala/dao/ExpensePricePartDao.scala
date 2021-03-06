@@ -13,6 +13,10 @@ class ExpensePricePartDao extends AppDao {
     insertQ(fr"(${companyId}, ${pricePart.name}, ${pricePart.percentile})").withUniqueGeneratedKeys[Long]("id")
   }
 
+  def deleteById(id: Long, companyId: Long): doobie.ConnectionIO[Int] = {
+    deleteQ(fr"where company_id=${companyId} and id = ${id}").run
+  }
+
   def findById(id: Long, companyId: Long): doobie.ConnectionIO[Option[ExpensePricePart]] = {
     selectQ[ExpensePricePart](fr"where company_id=$companyId and id=$id").option
   }

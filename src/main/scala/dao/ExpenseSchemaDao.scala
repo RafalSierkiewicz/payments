@@ -22,6 +22,10 @@ class ExpenseSchemaDao extends AppDao {
     selectQ[ExpenseSchema](fr"where id=$schemaId and company_id=$companyId").option
   }
 
+  def deleteById(schemaId: Long, companyId: Long): doobie.ConnectionIO[Int] = {
+    deleteQ(fr"where id=$schemaId and company_id=$companyId").run
+  }
+
   def insert(companyId: Long, schema: ExpenseSchemaToCreate): doobie.ConnectionIO[Long] = {
     val now = Timestamp.from(Instant.now())
     insertQ(fr"($companyId, ${schema.name}, $now)").withUniqueGeneratedKeys[Long]("id")

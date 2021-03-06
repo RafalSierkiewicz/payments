@@ -36,12 +36,14 @@ axios.interceptors.response.use(
   (resp) => resp,
   (error) => {
     if (error.response.status === 401) {
+      localStorage.removeItem(JWT_KEY);
       window.location.replace('/logout');
     }
     return Promise.reject(error);
   }
 );
 sagaMiddleware.run(rootSaga);
-store.dispatch(actions.users.loadAllUsersStart());
-
+if (localStorage.getItem(JWT_KEY)) {
+  store.dispatch(actions.users.loadAllUsersStart());
+}
 export { store, appHistory };

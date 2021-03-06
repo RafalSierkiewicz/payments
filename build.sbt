@@ -34,3 +34,6 @@ libraryDependencies ++= Seq(
   "org.mindrot"               % "jbcrypt"                % "0.3m",
   "org.scalatest"            %% "scalatest"              % "3.2.2" % Test
 )
+mainClass in Compile := Some("app.Main")
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)

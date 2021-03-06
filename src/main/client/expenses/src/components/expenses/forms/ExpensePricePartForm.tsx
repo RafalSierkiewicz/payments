@@ -9,10 +9,12 @@ import { getParts } from '../../../selectors';
 const defaultPricePartCreate = {
   name: '',
   percentile: 50,
+  isReturn: false,
 };
 const partSchema = Yup.object().shape({
   name: Yup.string().required(),
   percentile: Yup.number().required().min(0).max(100),
+  isReturn: Yup.boolean().required(),
 });
 
 const ExpensesPricePartForm: React.FC = React.memo(() => {
@@ -26,6 +28,7 @@ const ExpensesPricePartForm: React.FC = React.memo(() => {
           actions.expenses.createExpensePricePart({
             name: values.name,
             percentile: values.percentile / 100,
+            isReturn: values.isReturn,
           })
         );
 
@@ -54,6 +57,9 @@ const ExpensesPricePartForm: React.FC = React.memo(() => {
                 value={values.percentile}
                 onChange={handleChange}
               />
+            </Form.Group>
+            <Form.Group as={Col} controlId="pricePartFormReturn">
+              <Form.Check type="checkbox" label="Is return?" name="isReturn" onChange={handleChange} />
             </Form.Group>
             <div>
               <Button size="sm" variant="primary" type="submit">

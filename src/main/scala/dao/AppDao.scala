@@ -18,4 +18,12 @@ trait AppDao {
   def insertQ(values: Fragment): doobie.Update0 = {
     (fr"insert into " ++ tableName ++ fr" ( " ++ updateFields ++ fr" ) values " ++ values).update
   }
+
+  def deleteQ(values: Fragment): doobie.Update0 = {
+    (fr"delete from " ++ tableName ++ values).update
+  }
+
+  def deleteByIdQ(id: Long): doobie.Update0 = {
+    (fr"delete from " ++ tableName ++ fr"where id=$id").update
+  }
 }

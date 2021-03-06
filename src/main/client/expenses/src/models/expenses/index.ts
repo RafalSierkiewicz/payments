@@ -13,6 +13,8 @@ interface IExpense {
   id: number;
   typeId: number;
   userId: number;
+  schemaId: number;
+  pricePart: number;
   name: string | null;
   price: number;
   created_at: number;
@@ -47,11 +49,13 @@ interface IExpensePart {
   id: number;
   name: string;
   percentile: number;
+  isReturn: boolean;
 }
 
 interface IExpensePartCreate {
   name: string;
   percentile: number;
+  isReturn: boolean;
 }
 
 interface IExpenseTypeCreate {
@@ -75,6 +79,7 @@ interface IExpenseCreate {
   typeId: number;
   userId: number;
   schemaId: number;
+  pricePart: number;
 }
 
 interface ISummary {
@@ -89,8 +94,12 @@ interface IUserSummary {
 
 interface ITotalSummary {
   payed: number;
-  pricePartsMap: Map<string, number>;
+  pricePartsMap: SimpleMap;
   toReturn: number;
+}
+
+interface SimpleMap {
+  [key: string]: number;
 }
 
 export type {
@@ -109,4 +118,5 @@ export type {
   IUserSummary,
   ITotalSummary,
   ISummary,
+  SimpleMap,
 };

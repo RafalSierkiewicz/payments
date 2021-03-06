@@ -34,6 +34,14 @@ class ExpenseService[F[_]](
     }
   }
 
+  def deleteExpenseById(schemaId: Long, companyId: Long, expenseId: Long): doobie.ConnectionIO[Long] = {
+    for {
+      schema <- expenseSchemaDao.getById(schemaId, companyId)
+      _ = schema.getOrElse(throw NotExists(s"Schema ${schemaId} does not belong to company $companyId"))
+      deleteId <- expenseDao.deleteByIdQ(expenseId).run
+    } yield deleteId
+  }
+
   def getCompanyChartData(companyId: Long): doobie.ConnectionIO[CompanySummaryCharts] = {
     for {
       chartByType   <-
@@ -76,8 +84,19 @@ class ExpenseService[F[_]](
   def insertType(companyId: Long, expenseType: ExpenseTypeToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
     expenseTypeDao.insert(companyId, expenseType).attemptSqlState
 
+  def deleteType(id: Long, companyId: Long): doobie.ConnectionIO[Either[SqlState, Int]] =
+    expenseTypeDao.delete(id, companyId).attemptSqlState
+
   def insertSchema(companyId: Long, expenseSchema: ExpenseSchemaToCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
     expenseSchemaDao.insert(companyId, expenseSchema).attemptSqlState
+
+  def deleteSchema(id: Long, companyId: Long): doobie.ConnectionIO[Int] =
+    for {
+      schema <- expenseSchemaDao.getById(id, companyId)
+      _ = schema.getOrElse(throw NotExists(s"Schema ${id} does not belong to company $companyId"))
+      _  <- expenseDao.deleteBySchemaId(id)
+      id <- expenseSchemaDao.deleteById(id, companyId)
+    } yield id
 
   def listSchemasByCompany(companyId: Long): fs2.Stream[doobie.ConnectionIO, ExpenseSchema] =
     expenseSchemaDao.getCompanySchemas(companyId)
@@ -87,5 +106,8 @@ class ExpenseService[F[_]](
 
   def insertPart(companyId: Long, part: ExpensePricePartCreate): doobie.ConnectionIO[Either[SqlState, Long]] =
     expensePricePartDao.insert(companyId, part).attemptSqlState
+
+  def deletePart(id: Long, companyId: Long): doobie.ConnectionIO[Either[SqlState, Int]] =
+    expensePricePartDao.deleteById(id, companyId).attemptSqlState
 
 }

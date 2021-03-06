@@ -38,7 +38,7 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
       _          <- BlazeServerBuilder[F](global)
         .bindHttp(8080, "localhost")
         .withIdleTimeout(Duration.Inf)
-        .withHttpApp(routes(PaymentsModule.make[F](transactor, config)).orNotFound)
+        .withHttpApp(routes(PaymentsModule.make[F](transactor, config, blocker)).orNotFound)
         .resource
     } yield ()).use(_ => F.never)
   }
@@ -62,7 +62,11 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
   }
 
   private def routes(module: Module[F]) = {
-    Router("api/expenses" -> module.expenseController.routes, "api/users" -> module.userController.routes)
+    Router(
+      "api/expenses" -> module.expenseController.routes,
+      "api/users"    -> module.userController.routes,
+      "/"            -> module.homeController.routes
+    )
   }
 }
 

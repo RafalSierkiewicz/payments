@@ -10,6 +10,10 @@ services:
       - postgres-database:/var/lib/postgresql/data
     ports:
       - 5999:5432
+    networks:
+      - front
 volumes:
   postgres-database:
+networks:
+  front:
 

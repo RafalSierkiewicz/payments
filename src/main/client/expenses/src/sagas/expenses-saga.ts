@@ -1,12 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
-import { call, takeLatest, put } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 
 import {
   IActionEmpty,
   IActionTyped,
+  IExpense,
   IExpenseCreate,
+  IExpensePart,
   IExpensePartCreate,
   IExpenseSchema,
+  IExpenseType,
   IExpenseTypeCreate,
 } from 'models';
 import { actions, actionTypes } from 'actions';
@@ -86,6 +89,18 @@ function* createExpenseType(action: IActionTyped<IExpenseTypeCreate>) {
 const createExpenseTypeCall = (expenseType: IExpenseTypeCreate) =>
   axiosInstance.post('/api/expenses/types', expenseType).then((response: AxiosResponse) => response.data);
 
+function* deleteExpenseType(action: IActionTyped<IExpenseType>) {
+  try {
+    yield call(deleteExpenseTypeCall, action.payload);
+    yield put(actions.expenses.loadAllTypesStart());
+  } catch {
+    console.log('Error');
+  }
+}
+
+const deleteExpenseTypeCall = (expenseType: IExpenseType) =>
+  axiosInstance.delete(`/api/expenses/types/${expenseType.id}`).then((response: AxiosResponse) => response.data);
+
 function* createExpense(action: IActionTyped<IExpenseCreate>) {
   try {
     yield call(createExpenseCall, action.payload);
@@ -97,6 +112,19 @@ function* createExpense(action: IActionTyped<IExpenseCreate>) {
 
 const createExpenseCall = (expenseType: IExpenseCreate) =>
   axiosInstance.post('/api/expenses', expenseType).then((response: AxiosResponse) => response.data);
+
+function* deleteExpense(action: IActionTyped<IExpense>) {
+  try {
+    yield call(deleteExpenseCall, action.payload);
+    yield put(actions.expenses.loadSchemaExpensesStart(action.payload.schemaId));
+  } catch {
+    console.log('Error');
+  }
+}
+const deleteExpenseCall = (expense: IExpense) =>
+  axiosInstance
+    .delete(`/api/expenses/${expense.schemaId}/expense/${expense.id}`)
+    .then((response: AxiosResponse) => response.data);
 
 function* createExpenseSchema(action: IActionTyped<IExpenseSchema>) {
   try {
@@ -110,6 +138,18 @@ function* createExpenseSchema(action: IActionTyped<IExpenseSchema>) {
 const createExpenseSchemaCall = (expenseType: IExpenseSchema) =>
   axiosInstance.post('/api/expenses/schemas', expenseType).then((response: AxiosResponse) => response.data);
 
+function* deleteExpenseSchema(action: IActionTyped<IExpenseSchema>) {
+  try {
+    yield call(deleteExpenseSchemaCall, action.payload);
+    yield put(actions.expenses.loadAllSchemasStart());
+  } catch {
+    console.log('Error');
+  }
+}
+
+const deleteExpenseSchemaCall = (expenseType: IExpenseSchema) =>
+  axiosInstance.delete(`/api/expenses/schemas/${expenseType.id}`).then((response: AxiosResponse) => response.data);
+
 function* createExpensePart(action: IActionTyped<IExpensePartCreate>) {
   try {
     yield call(createExpensePartCall, action.payload);
@@ -121,6 +161,18 @@ function* createExpensePart(action: IActionTyped<IExpensePartCreate>) {
 
 const createExpensePartCall = (expenseType: IExpensePartCreate) =>
   axiosInstance.post('/api/expenses/parts', expenseType).then((response: AxiosResponse) => response.data);
+
+function* deleteExpensePart(action: IActionTyped<IExpensePart>) {
+  try {
+    yield call(deleteExpensePartCall, action.payload);
+    yield put(actions.expenses.loadAllPartsStart());
+  } catch {
+    console.log('Error');
+  }
+}
+
+const deleteExpensePartCall = (expenseType: IExpensePart) =>
+  axiosInstance.delete(`/api/expenses/parts/${expenseType.id}`).then((response: AxiosResponse) => response.data);
 
 function* loadAllPriceParts() {
   try {
@@ -150,5 +202,15 @@ export const expensesSaga = [
   ),
   takeLatest(actionTypes.expenses.CREATE_EXPENSE_PART, (action: IActionTyped<IExpensePartCreate>) =>
     createExpensePart(action)
+  ),
+  takeLatest(actionTypes.expenses.DELETE_EXPENSE, (action: IActionTyped<IExpense>) => deleteExpense(action)),
+  takeLatest(actionTypes.expenses.DELETE_EXPENSE_SCHEMA, (action: IActionTyped<IExpenseSchema>) =>
+    deleteExpenseSchema(action)
+  ),
+  takeLatest(actionTypes.expenses.DELETE_EXPENSE_TYPE, (action: IActionTyped<IExpenseType>) =>
+    deleteExpenseType(action)
+  ),
+  takeLatest(actionTypes.expenses.DELETE_EXPENSE_PART, (action: IActionTyped<IExpensePart>) =>
+    deleteExpensePart(action)
   ),
 ];

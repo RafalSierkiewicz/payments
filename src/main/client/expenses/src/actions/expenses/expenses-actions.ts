@@ -61,6 +61,26 @@ const createExpensePricePart = (payload: IExpensePartCreate): IActionTyped<IExpe
   type: actionTypes.CREATE_EXPENSE_PART,
 });
 
+const deleteExpense = (payload: IExpense): IActionTyped<IExpense> => ({
+  payload,
+  type: actionTypes.DELETE_EXPENSE,
+});
+
+const deleteExpenseType = (payload: IExpenseType): IActionTyped<IExpenseType> => ({
+  payload,
+  type: actionTypes.DELETE_EXPENSE_TYPE,
+});
+
+const deleteExpenseSchema = (payload: IExpenseSchema): IActionTyped<IExpenseSchema> => ({
+  payload,
+  type: actionTypes.DELETE_EXPENSE_SCHEMA,
+});
+
+const deleteExpensePricePart = (payload: IExpensePart): IActionTyped<IExpensePart> => ({
+  payload,
+  type: actionTypes.DELETE_EXPENSE_PART,
+});
+
 const loadAllPricePartsSuccess = (payload: IExpensePart[]): IActionTyped<IExpensePart[]> => ({
   payload,
   type: actionTypes.LOAD_ALL_PARTS_SUCCESS,
@@ -113,6 +133,11 @@ const actionTypes = {
   CREATE_EXPENSE_SCHEMA: 'CREATE_EXPENSE_SCHEMA',
   CREATE_EXPENSE_PART: 'CREATE_EXPENSE_PART',
 
+  DELETE_EXPENSE: 'DELETE_EXPENSE',
+  DELETE_EXPENSE_TYPE: 'DELETE_EXPENSE_TYPE',
+  DELETE_EXPENSE_SCHEMA: 'DELETE_EXPENSE_SCHEMA',
+  DELETE_EXPENSE_PART: 'DELETE_EXPENSE_PART',
+
   LOAD_COMPANY_CHART_START: 'LOAD_COMPANY_CHART_START',
   LOAD_COMPANY_CHART_SUCCESS: 'LOAD_COMPANY_CHART_SUCCESS',
 };
@@ -135,6 +160,10 @@ const actions = {
   loadCompanyBarChartStart,
   loadCompanyBarChartSuccess,
   loadSchemaSummarySuccess,
+  deleteExpense,
+  deleteExpensePricePart,
+  deleteExpenseSchema,
+  deleteExpenseType,
 };
 
 export { actionTypes, actions };

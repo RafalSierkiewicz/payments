@@ -2,14 +2,16 @@ import React from 'react';
 import { IExpense, IExpenseType, IUser } from 'models';
 import * as _ from 'lodash';
 import { Accordion, Button, Card, Col, ListGroup, Row } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
-import { getExpenses, getTypes, getUsers } from '../../selectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { getExpenses, getTypes, getUsers } from 'selectors';
+import { actions } from 'actions';
+import { isEmpty } from 'lodash';
 
 const ExpensesList: React.FC = () => {
   const expenses = useSelector(getExpenses);
   const users = useSelector(getUsers);
   const types = useSelector(getTypes);
-
+  const dispatch = useDispatch();
   const grouped = _.groupBy(expenses, (expense: IExpense) => expense.typeId);
 
   return (
@@ -40,14 +42,19 @@ const ExpensesList: React.FC = () => {
                       return (
                         <ListGroup.Item id={expense.id.toString()}>
                           <Row noGutters={true} className="align-items-center">
-                            <Col sm={4}>{`${expense.name}`}</Col>
+                            <Col sm={4}>{`${isEmpty(expense.name) ? 'Undefined' : expense.name}`}</Col>
                             <Col sm={3}>{`${expense.typeId}`}</Col>
                             <Col sm={2}>{`${
                               (_.find(users, (user: IUser) => user.id === expense.userId) || { username: '' }).username
                             }`}</Col>
                             <Col sm={2}>{`${expense.price}`}</Col>
                             <Col sm>
-                              <Button variant="danger">Remove</Button>
+                              <Button
+                                variant="danger"
+                                onClick={() => dispatch(actions.expenses.deleteExpense(expense))}
+                              >
+                                Remove
+                              </Button>
                             </Col>
                           </Row>
                         </ListGroup.Item>
