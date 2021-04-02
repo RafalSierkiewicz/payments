@@ -2,7 +2,6 @@ package dao
 import java.sql.Timestamp
 import java.time.Instant
 
-import cats.effect.Bracket
 import doobie.util.fragment.Fragment
 import doobie.implicits._
 import doobie.implicits.javasql._
@@ -20,6 +19,10 @@ class ExpenseSchemaDao extends AppDao {
 
   def getById(schemaId: Long, companyId: Long): doobie.ConnectionIO[Option[ExpenseSchema]] = {
     selectQ[ExpenseSchema](fr"where id=$schemaId and company_id=$companyId").option
+  }
+
+  def count(companyId: Long): doobie.ConnectionIO[Long] = {
+    (fr"select count(*) from " ++ tableName ++ fr" where company_id=$companyId").query[Long].unique
   }
 
   def deleteById(schemaId: Long, companyId: Long): doobie.ConnectionIO[Int] = {

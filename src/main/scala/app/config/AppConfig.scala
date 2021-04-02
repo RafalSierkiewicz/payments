@@ -1,3 +1,3 @@
 package app.config
 
-case class AppConfig(dbConfig: DbConfig, authConfig: AuthConfig)
+case class AppConfig(dbConfig: DbConfig, authConfig: AuthConfig, expenses: ExpensesConfig)

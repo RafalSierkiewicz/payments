@@ -89,6 +89,7 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
               <Form.Row>
                 <Form.Group as={Col} controlId="expenseFormPrice">
                   <Form.Control
+                    ref={this.inputRef}
                     type="number"
                     placeholder="Enter price"
                     name="price"
@@ -139,7 +140,6 @@ class ExpensesPageBase extends React.PureComponent<IExpensesPageProps> {
                 </Form.Group>
                 <Form.Group as={Col} controlId="expenseFormName">
                   <Form.Control
-                    ref={this.inputRef}
                     type="text"
                     placeholder="Enter expense name"
                     name="name"

@@ -1,15 +1,6 @@
 version: "2"
 
 services:
-  expenses-front:
-    image: expenses:prod
-    container_name: expenses
-    networks:
-      - front
-    ports:
-      - '3001:80'
-    depends_on:
-      - payments
   payments:
     image: payments:0.1
     container_name: payments_app
@@ -27,8 +18,6 @@ services:
       - database.env
     volumes:
       - postgres-database:/var/lib/postgresql/data
-    ports:
-      - 5999:5432
     networks:
       - front
 volumes:

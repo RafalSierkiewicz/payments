@@ -1,6 +1,6 @@
 package app
 
-import app.config.{AppConfig, AuthConfig, DbConfig}
+import app.config.{AppConfig, AuthConfig, DbConfig, ExpensesConfig}
 import cats.Parallel
 import cats.effect._
 import com.typesafe.config.ConfigFactory
@@ -16,16 +16,22 @@ import pureconfig.ConfigSource
 
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEffect[F]) {
   private val configF: F[AppConfig] = {
     import pureconfig.generic.auto._
     F.delay({
-      val db   = ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
-      val auth =
+      val db       = ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
+      val auth     =
         ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("auth").loadOrThrow[AuthConfig]
+      val expenses =
+        ConfigSource
+          .fromConfig(ConfigFactory.load(this.getClass.getClassLoader))
+          .at("expenses")
+          .loadOrThrow[ExpensesConfig]
 
-      AppConfig(db, auth)
+      AppConfig(db, auth, expenses)
     })
 
   }
@@ -36,7 +42,7 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
       blocker    <- Blocker[F]
       transactor <- transactorResource(config.dbConfig, blocker)
       _          <- BlazeServerBuilder[F](global)
-        .bindHttp(8080, "localhost")
+        .bindHttp(config.expenses.port, config.expenses.host)
         .withIdleTimeout(Duration.Inf)
         .withHttpApp(routes(PaymentsModule.make[F](transactor, config, blocker)).orNotFound)
         .resource

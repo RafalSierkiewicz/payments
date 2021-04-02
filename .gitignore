@@ -12,4 +12,5 @@ package-lock.json
 src/main/client/expenses/node_modules/*
 src/main/client/expenses/.eslintcache
 src/main/client/expenses/coverage
+src/main/client/expenses/build/*
 src/main/resources/prod/*

@@ -44,12 +44,13 @@ class ExpenseService[F[_]](
 
   def getCompanyChartData(companyId: Long): doobie.ConnectionIO[CompanySummaryCharts] = {
     for {
+      schemaCount   <- expenseSchemaDao.count(companyId)
       chartByType   <-
         expenseDao
           .getCompanyTypeChartData(companyId)
           .map(
             barChartDatas =>
-              barChartDatas.map(chartData => BarChartData(chartData.label, chartData.sum / barChartDatas.size))
+              barChartDatas.map(el => BarChartData(el.label, el.sum / (if (schemaCount == 0) 1 else schemaCount)))
           )
           .map(BarChart)
       chartBySchema <- expenseDao.getCompanySchemaChartData(companyId).map(BarChart)
@@ -59,12 +60,13 @@ class ExpenseService[F[_]](
   def getExpensesChartsData(schemaId: Long, companyId: Long): doobie.ConnectionIO[SchemaExpensesChart] = {
     for {
       _               <- expenseSchemaDao.getById(schemaId, companyId)
+      schemaCount     <- expenseSchemaDao.count(companyId)
       schemaChartData <- expenseDao.getSchemaChartData(schemaId)
       companySummary  <-
         expenseDao
           .getCompanyTypeChartData(companyId)
           .map(_.filter(data => schemaChartData.exists(_.label == data.label)))
-    } yield SchemaExpensesChart(BarChart(schemaChartData), LineChart(companySummary.map(_.sum)))
+    } yield SchemaExpensesChart(BarChart(schemaChartData), LineChart(companySummary.map(_.sum / schemaCount)))
   }
 
   def getExpenseSchemaSummary(schemaId: Long, companyId: Long): doobie.ConnectionIO[ExpensesSummary] = {
