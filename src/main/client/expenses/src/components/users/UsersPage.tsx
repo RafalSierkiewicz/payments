@@ -5,7 +5,7 @@ import { Formik } from 'formik';
 import { actions } from '../../actions';
 import { useDispatch } from 'react-redux';
 import { Button, Col, Form } from 'react-bootstrap';
-
+import { isMobile } from 'react-device-detect';
 const defaultUserValues = {
   username: '',
   email: '',
@@ -38,8 +38,8 @@ const UsersPage: React.FC = () => {
       >
         {({ handleSubmit, handleChange, values }) => (
           <Form onSubmit={handleSubmit} id="user-create-form" key="user-create-form">
-            <Form.Row>
-              <Form.Group as={Col} controlId="userFormUsername">
+            <div className={isMobile ? '' : 'form-row'}>
+              <Form.Group className="col" controlId="userFormUsername">
                 <Form.Control
                   type="text"
                   placeholder="Username"
@@ -48,7 +48,7 @@ const UsersPage: React.FC = () => {
                   onChange={handleChange}
                 />
               </Form.Group>
-              <Form.Group as={Col} controlId="userFormEmail">
+              <Form.Group className="col" controlId="userFormEmail">
                 <Form.Control
                   type="text"
                   placeholder="Email"
@@ -57,7 +57,7 @@ const UsersPage: React.FC = () => {
                   onChange={handleChange}
                 />
               </Form.Group>
-              <Form.Group as={Col} controlId="userFormPassword">
+              <Form.Group className="col" controlId="userFormPassword">
                 <Form.Control
                   type="password"
                   placeholder="Password"
@@ -66,12 +66,12 @@ const UsersPage: React.FC = () => {
                   onChange={handleChange}
                 />
               </Form.Group>
-              <div>
+              <Col xs={1}>
                 <Button size="sm" variant="primary" type="submit">
                   Submit
                 </Button>
-              </div>
-            </Form.Row>
+              </Col>
+            </div>
           </Form>
         )}
       </Formik>

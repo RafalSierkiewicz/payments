@@ -1,7 +1,6 @@
 import {
   IActionEmpty,
   IActionTyped,
-  IBarChart,
   ICompanyBarCharts,
   IExpense,
   IExpenseCreate,

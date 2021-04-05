@@ -1,58 +1,73 @@
 import * as React from 'react';
-import { NavLink, withRouter, Switch, Route } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { Menu, MenuItem, ProSidebar, SidebarContent, SidebarFooter, SidebarHeader, SubMenu } from 'react-pro-sidebar';
+import { BiArrowFromLeft, BiArrowFromRight, FiLogOut, GiExpense, ImUser } from 'react-icons/all';
+import { Col, Row } from 'react-bootstrap';
 
-const SidebarBase: React.FC<object> = React.memo(() => (
-  <div className="sidebar">
-    <h3 className="sidebar__title">Navigation</h3>
+interface ISidebarPros {
+  toggled: boolean;
+  onToggle: (value: boolean) => void;
+}
 
-    <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/expenses'}>
-      <span className={'sidebar__link-text'}>Expenses</span>
-    </NavLink>
-
-    <Switch>
-      <Route
-        path={'/expenses'}
-        render={(routeProps) => {
-          return (
-            <>
-              <NavLink
-                className="sidebar__link--inner"
-                activeClassName="sidebar__link--active"
-                exact={false}
-                to={'/expenses/types'}
-              >
-                <span className={'sidebar__link-text'}>Types</span>
-              </NavLink>
-              <NavLink
-                className="sidebar__link--inner"
-                activeClassName="sidebar__link--active"
-                exact={false}
-                to={'/expenses/sheets'}
-              >
-                <span className={'sidebar__link-text'}>Sheets</span>
-              </NavLink>
-              <NavLink
-                className="sidebar__link--inner"
-                activeClassName="sidebar__link--active"
-                exact={false}
-                to={'/expenses/parts'}
-              >
-                <span className={'sidebar__link-text'}>Price parts</span>
-              </NavLink>
-            </>
-          );
-        }}
-      />
-    </Switch>
-    <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/users'}>
-      <span className={'sidebar__link-text'}>Users</span>
-    </NavLink>
-    <NavLink className="sidebar__link" activeClassName="sidebar__link--active" exact={true} to={'/logout'}>
-      <span className={'sidebar__link-text'}>Logout</span>
-    </NavLink>
-  </div>
-));
-
-const Sidebar = withRouter(SidebarBase);
+const Sidebar: React.FC<ISidebarPros> = ({ toggled, onToggle }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <ProSidebar collapsed={collapsed} breakPoint="md" toggled={toggled} onToggle={onToggle}>
+      <SidebarHeader>
+        {collapsed ? (
+          <div className="sidebar__header-collapsed" role="button" onClick={() => setCollapsed(!collapsed)}>
+            <BiArrowFromLeft />
+          </div>
+        ) : (
+          <Row className="sidebar__header" noGutters={true}>
+            <Col sm="11">My App</Col>
+            <Col>
+              <div role="button" onClick={() => setCollapsed(!collapsed)}>
+                <BiArrowFromRight />
+              </div>
+            </Col>
+          </Row>
+        )}
+      </SidebarHeader>
+      <SidebarContent>
+        <Menu iconShape="circle">
+          <SubMenu title="Expenses" icon={<GiExpense />}>
+            <MenuItem>
+              Schemas
+              <NavLink to={'/expenses'} exact={false} />
+            </MenuItem>
+            <MenuItem>
+              Types
+              <NavLink to={'/expenses/types'} exact={false} />
+            </MenuItem>
+            <MenuItem>
+              Settings
+              <NavLink to={'/expenses/parts'} exact={false} />
+            </MenuItem>
+          </SubMenu>
+        </Menu>
+        <Menu iconShape="circle">
+          <MenuItem icon={<ImUser />}>
+            Users
+            <NavLink to={'/users'} exact={true} />
+          </MenuItem>
+        </Menu>
+      </SidebarContent>
+      <SidebarFooter className="sidebar__footer">
+        <Row noGutters={true} className="justify-content-md-start">
+          <Col sm={2}>
+            <FiLogOut />
+          </Col>
+          <Col sm={3}>
+            <NavLink to={'/logout'} exact={true}>
+              Logout
+            </NavLink>
+          </Col>
+        </Row>
+      </SidebarFooter>
+    </ProSidebar>
+  );
+};
 
 export { Sidebar };

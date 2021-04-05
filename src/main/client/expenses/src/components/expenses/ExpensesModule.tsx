@@ -12,6 +12,7 @@ import { CompanyExpenseChart } from './CompanyExpenseChart';
 import { ExpensesSchemasPage } from './ExpenseSchemasPage';
 import { ExpensesTypesPage } from './ExpenseTypesPage';
 import { ExpensesPricePartPage } from './ExpensePricePartPage';
+import { HeaderRow } from '../common/HeaderRow';
 
 interface IExpensesModuleBaseProps extends RouteComponentProps<any> {
   dispatch: Dispatch;
@@ -37,36 +38,23 @@ class ExpensesModuleBase extends React.PureComponent<IExpensesModuleBaseProps> {
               Expenses
             </Link>
             <Navbar.Toggle aria-controls="expenses_sheet_nav" />
-            <Navbar.Collapse id="expenses_sheet_nav">
-              <Nav className="mr-auto">
-                <NavDropdown id="expenses_sheet_dropdown" title="Sheets" className="expenses__nav-link">
-                  {_.map(this.props.schemas, (schema: IExpenseSchema) => {
-                    return (
-                      <Row className="dropdown-item" key={schema.id.toString()}>
-                        <Link to={`/expenses/schema/${schema.id}`} className="nav-item">
-                          <p>{schema.name}</p>
-                        </Link>
-                      </Row>
-                    );
-                  })}
-                </NavDropdown>
-              </Nav>
-            </Navbar.Collapse>
             <Link to="/expenses/charts" className="mr-auto expenses__nav-link nav-link">
               Charts
             </Link>
+            <Link to="/expenses/company/charts" className="mr-auto expenses__nav-link nav-link">
+              Summary Charts
+            </Link>
           </Navbar>
         </Row>
-        <Container></Container>
         <Switch>
           <Route exact={true} path={'/expenses/schema/:id'} component={ExpensesPage} />
           <Route exact={true} path={'/expenses/types'} component={ExpensesTypesPage} />
-          <Route exact={true} path={'/expenses/sheets'} component={ExpensesSchemasPage} />
           <Route exact={true} path={'/expenses/parts'} component={ExpensesPricePartPage} />
           <Route exact={true} path={'/expenses/charts'} component={ExpensesCharts} />
+          <Route exact={true} path={'/expenses'} component={ExpensesSchemasPage} />
           <Route
             exact={true}
-            path={'/expenses'}
+            path={'/expenses/company/charts'}
             component={() => <CompanyExpenseChart chartData={this.props.chartData} />}
           />
         </Switch>

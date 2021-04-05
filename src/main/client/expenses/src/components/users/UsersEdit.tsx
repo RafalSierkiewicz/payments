@@ -82,7 +82,7 @@ const UsersEditBase: React.FC<UserEditProps> = ({ dispatch, user, id }) => {
             />
           </Form.Group>
           <div>
-            <Button size="sm" variant="primary" type="submit" id="editSubmit">
+            <Button size="sm" className="mb-2" variant="primary" type="submit" id="editSubmit">
               Submit
             </Button>
           </div>

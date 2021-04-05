@@ -2,14 +2,15 @@ import React from 'react';
 import { Table } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { getSchemaSummary, getUsers } from 'selectors';
-import { map, find, sortBy, forEach } from 'lodash';
-import { ITotalSummary, IUser, IUserSummary, SimpleMap } from 'models';
+import { find, map, sortBy } from 'lodash';
+import { IUser, IUserSummary } from 'models';
+
 export const ExpenseSummary: React.FC = React.memo(() => {
   const users = useSelector(getUsers);
   const summary = useSelector(getSchemaSummary);
   const headers = sortBy(Object.keys(summary.total.pricePartsMap), (str: string) => str);
   return (
-    <Table striped bordered hover>
+    <Table striped bordered hover responsive>
       <thead>
         <tr>
           <th>Users</th>

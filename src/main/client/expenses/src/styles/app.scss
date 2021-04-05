@@ -1,12 +1,18 @@
-.app {
-  &__root,
-  &__wrapper,
-  &__container {
-    height: 100%;
-  }
+.no-padding {
+    padding: 0px !important
+}
 
-  &__wrapper {
-    display: block;
-    padding-left: 200px;
-  }
+.app {
+   &__wrapper{
+       height: 100vh;
+       display: flex;
+       position: relative
+   }
+
+   &__main {
+       flex-grow: 1;
+       display: flex;
+       flex-direction: column;
+       overflow-y: auto;
+   }
 }

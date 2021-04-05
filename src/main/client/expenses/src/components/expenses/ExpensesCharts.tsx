@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, HorizontalBar } from 'react-chartjs-2';
 import { Container } from 'react-bootstrap';
 import * as _ from 'lodash';
 import { useSelector } from 'react-redux';
@@ -10,6 +10,8 @@ const ExpensesCharts: React.FC = React.memo(() => {
   const chartData = useSelector(getSchemaChartData);
   const values = _.map(chartData.barChart.data, (data) => data.sum);
   const borderWithBackgroundColor = getRandomColor(values);
+  const options = { scales: { yAxes: [{ ticks: { mirror: true, padding: -10 } }] } };
+
   const data = {
     labels: _.map(chartData.barChart.data, (data) => data.label),
     datasets: [
@@ -33,7 +35,7 @@ const ExpensesCharts: React.FC = React.memo(() => {
   };
   return (
     <Container>
-      <Bar data={data} />
+      <HorizontalBar data={data} options={options} />
     </Container>
   );
 });

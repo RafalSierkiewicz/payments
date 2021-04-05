@@ -6,6 +6,7 @@ import { getTypes } from 'selectors';
 import * as _ from 'lodash';
 import { IExpenseType } from 'models';
 import { actions } from 'actions';
+import { RemoveButton } from '../common/IconButton';
 
 const ExpensesTypesPage: React.FC = React.memo(() => {
   const types = useSelector(getTypes);
@@ -20,9 +21,7 @@ const ExpensesTypesPage: React.FC = React.memo(() => {
               <Row noGutters={true} className="align-items-center">
                 <Col sm={11}>{`${type.name}`}</Col>
                 <Col sm>
-                  <Button variant="danger" onClick={() => dispatch(actions.expenses.deleteExpenseType(type))}>
-                    Remove
-                  </Button>
+                  <RemoveButton onClick={(e) => dispatch(actions.expenses.deleteExpenseType(type))} />
                 </Col>
               </Row>
             </ListGroup.Item>

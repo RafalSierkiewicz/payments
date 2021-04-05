@@ -14,8 +14,8 @@ interface IUsersModuleBaseProps extends RouteComponentProps<any> {
 class UsersModuleBase extends React.PureComponent<IUsersModuleBaseProps> {
   render() {
     return (
-      <Container fluid={true}>
-        <Row className="navs">
+      <>
+        <Row className="navs" noGutters>
           <Navbar bg="primary" variant="dark" expand="lg">
             <Link to="/users" className="mr-auto expenses__nav-link nav-link">
               Users
@@ -28,7 +28,7 @@ class UsersModuleBase extends React.PureComponent<IUsersModuleBaseProps> {
             <Route exact={true} path="/users" component={UsersPage} />
           </Switch>
         </Container>
-      </Container>
+      </>
     );
   }
 }

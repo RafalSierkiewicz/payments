@@ -1,12 +1,12 @@
 import React from 'react';
-import { Button, Card, Col, Container, ListGroup, Row } from 'react-bootstrap';
-import { ExpensesTypeForm } from './forms/ExpenseSettingTypeForm';
+import { Button, Col, Container, ListGroup, Row } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { getParts, getTypes } from '../../selectors';
+import { getParts } from '../../selectors';
 import * as _ from 'lodash';
-import { IExpensePart, IExpenseType } from '../../models/expenses';
+import { IExpensePart } from '../../models/expenses';
 import { ExpensesPricePartForm } from './forms/ExpensePricePartForm';
 import { actions } from 'actions';
+import { RemoveButton } from '../common/IconButton';
 
 const ExpensesPricePartPage: React.FC = React.memo(() => {
   const parts = useSelector(getParts);
@@ -22,9 +22,7 @@ const ExpensesPricePartPage: React.FC = React.memo(() => {
                 <Col sm={6}>{`${part.name}`}</Col>
                 <Col sm={5}>{`${part.percentile * 100}`}</Col>
                 <Col sm>
-                  <Button variant="danger" onClick={() => dispatch(actions.expenses.deleteExpensePricePart(part))}>
-                    Remove
-                  </Button>
+                  <RemoveButton onClick={(e) => dispatch(actions.expenses.deleteExpensePricePart(part))} />
                 </Col>
               </Row>
             </ListGroup.Item>

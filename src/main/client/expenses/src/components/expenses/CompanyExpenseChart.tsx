@@ -1,20 +1,20 @@
 import * as React from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, HorizontalBar } from 'react-chartjs-2';
 import { Container } from 'react-bootstrap';
 import * as _ from 'lodash';
 import { getRandomColor } from 'utils';
-import { IBarChart, ICompanyBarCharts } from '../../models/expenses';
+import { IBarChart, ICompanyBarCharts } from 'models';
 interface ICompanyExpenseChartProps {
   chartData: ICompanyBarCharts;
 }
 const CompanyExpenseChart: React.FC<ICompanyExpenseChartProps> = ({ chartData }) => {
   const chartByType = prepareChart(chartData.chartByType, 'Average by type');
   const chartBySchema = prepareChart(chartData.chartBySchema, 'Total expenses by schema');
-
+  const options = { scales: { yAxes: [{ ticks: { mirror: true, padding: -10 } }] } };
   return (
     <Container>
-      <Bar data={chartByType} />
-      <Bar data={chartBySchema} />
+      <HorizontalBar data={chartByType} options={options} />
+      <HorizontalBar data={chartBySchema} options={options} />
     </Container>
   );
 };
