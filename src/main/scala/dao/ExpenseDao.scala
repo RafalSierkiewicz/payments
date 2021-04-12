@@ -18,6 +18,15 @@ class ExpenseDao extends AppDao {
     selectQ[Expense](fr" where schema_id=$schemaId").stream
   }
 
+  def countByType(companyId: Long, typeId: Long): doobie.ConnectionIO[Int] = {
+    fr"""select count(e.id) from companies as c 
+        left join expense_schemas as es 
+          on c.id = es.company_id 
+        left join expenses as e 
+          on e.schema_id=es.id
+        where c.id=${companyId} and e.expense_type_id=${typeId} """.query[Int].unique
+  }
+
   def insert(expense: ExpenseToCreate): doobie.ConnectionIO[Long] = {
     val now = expense.createdAt
       .getOrElse(Timestamp.from(Instant.now()))

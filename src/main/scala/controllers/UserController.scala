@@ -6,14 +6,14 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.Decoder
+import io.circe.generic.semiauto._
 import io.circe.syntax._
 import models.User._
-import models.Company._
 import models.{CompanyToCreate, User, UserToCreate, UserUpdateModel}
+import models.Company._
 import org.http4s.circe._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.{AuthedRoutes, HttpRoutes}
+import org.http4s.{AuthedRoutes, EntityDecoder, EntityEncoder, HttpRoutes}
 import services.{AuthService, CompanyService, UserService}
 
 case class LoginForm(email: String, password: String)
@@ -25,14 +25,15 @@ class UserController[F[_]: Sync: Monad](
   authService: AuthService[F],
   xa: Transactor[F]
 ) extends BaseController[F] {
-  implicit def unsafeLogger[F[_]: Sync]                 = Slf4jLogger.getLogger[F]
-  private implicit val loginFormDecoder                 = deriveDecoder[LoginForm]
-  private implicit val loginFormEntityDecoder           = jsonOf[F, LoginForm]
-  private implicit val userWithCompanyFormDecoder       = deriveDecoder[UserWithCompanyForm]
-  private implicit val userWithCompanyFormEntityDecoder = jsonOf[F, UserWithCompanyForm]
-  private implicit val userEntityEncoder                = CirceEntityEncoder.circeEntityEncoder[F, User]
-  private implicit val userToCreateEncoder              = jsonOf[F, UserToCreate]
-  private implicit val userUpdateModelEncoder           = jsonOf[F, UserUpdateModel]
+  implicit def unsafeLogger[F[_]: Sync]                                                        = Slf4jLogger.getLogger[F]
+  private implicit val loginFormDecoder: Decoder[LoginForm]                                    = deriveDecoder[LoginForm]
+  private implicit val loginFormEntityDecoder: EntityDecoder[F, LoginForm]                     = jsonOf[F, LoginForm]
+  private implicit val userWithCompanyFormDecoder: Decoder[UserWithCompanyForm]                = deriveDecoder[UserWithCompanyForm]
+  private implicit val userWithCompanyFormEntityDecoder: EntityDecoder[F, UserWithCompanyForm] =
+    jsonOf[F, UserWithCompanyForm]
+  private implicit val userEntityEncoder: EntityEncoder[F, User]                               = CirceEntityEncoder.circeEntityEncoder[F, User]
+  private implicit val userToCreateEncoder: EntityDecoder[F, UserToCreate]                     = jsonOf[F, UserToCreate]
+  private implicit val userUpdateModelEncoder: EntityDecoder[F, UserUpdateModel]               = jsonOf[F, UserUpdateModel]
 
   private val openRoutes: HttpRoutes[F] = {
     HttpRoutes.of {

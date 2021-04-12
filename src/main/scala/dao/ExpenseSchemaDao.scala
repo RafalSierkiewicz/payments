@@ -21,6 +21,10 @@ class ExpenseSchemaDao extends AppDao {
     selectQ[ExpenseSchema](fr"where id=$schemaId and company_id=$companyId").option
   }
 
+  def getByName(companyId: Long, name: String): doobie.ConnectionIO[Option[ExpenseSchema]] = {
+    selectQ[ExpenseSchema](fr"where name=$name and company_id=$companyId").option
+  }
+
   def count(companyId: Long): doobie.ConnectionIO[Long] = {
     (fr"select count(*) from " ++ tableName ++ fr" where company_id=$companyId").query[Long].unique
   }

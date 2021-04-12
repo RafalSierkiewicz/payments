@@ -3,6 +3,8 @@ package app
 import app.config.{AppConfig, AuthConfig, DbConfig, ExpensesConfig}
 import cats.Parallel
 import cats.effect._
+import cats.Semigroup._
+
 import com.typesafe.config.ConfigFactory
 import doobie.ExecutionContexts
 import doobie.hikari.HikariTransactor
@@ -70,6 +72,8 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
   private def routes(module: Module[F]) = {
     Router(
       "api/expenses" -> module.expenseController.routes,
+      "api/expenses" -> module.expenseSchemaController.routes,
+      "api/expenses" -> module.expenseTypesController.routes,
       "api/users"    -> module.userController.routes,
       "/"            -> module.homeController.routes
     )
