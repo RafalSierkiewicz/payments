@@ -37,3 +37,4 @@ libraryDependencies ++= Seq(
 mainClass in Compile := Some("app.Main")
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
+Revolver.settings.++(javaOptions := Seq("-Dconfig.file=./src/main/resources/dev.conf"))
