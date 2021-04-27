@@ -6,7 +6,6 @@
 .bloop
 .bsp
 target
-package-lock.json
 .cache
 .ivy2
 .tmp
