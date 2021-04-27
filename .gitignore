@@ -7,7 +7,9 @@
 .bsp
 target
 package-lock.json
-
+.cache
+.ivy2
+.tmp
 
 src/main/client/expenses/node_modules/*
 src/main/client/expenses/.eslintcache
