@@ -45,9 +45,8 @@ const ExpensesList: React.FC = () => {
                           <Row noGutters={true} className="align-items-center">
                             <Col xs={3}>{`${isEmpty(expense.name) ? 'Undef' : expense.name}`}</Col>
                             <Col xs={3}>{`${find(types, (t: IExpenseType) => t.id === expense.typeId)!.name}`}</Col>
-                            <Col xs={3}>{`${
-                              (_.find(users, (user: IUser) => user.id === expense.userId) || { username: '' }).username
-                            }`}</Col>
+                            <Col xs={3}>{`${(_.find(users, (user: IUser) => user.id === expense.userId) || { username: '' }).username
+                              }`}</Col>
                             <Col xs={2}>{`${expense.price}`}</Col>
                             <Col xs>
                               <RemoveButton onClick={() => dispatch(actions.expenses.deleteExpense(expense))} />

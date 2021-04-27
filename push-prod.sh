@@ -10,7 +10,7 @@ cp -rf  build/* ../../resources/prod/
 
 
 echo 'Building backend'
-
+cd ../../
 sbt "docker:publishLocal"
 
 docker tag payments:0.1 registry.heroku.com/prv-expenses/web:latest && docker push registry.heroku.com/prv-expenses/web:latest && heroku container:release web

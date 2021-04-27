@@ -17,7 +17,7 @@ interface IExpense {
   pricePart: number;
   name: string | null;
   price: number;
-  created_at: number;
+  createdAt: number;
 }
 
 interface ISchemaBarChart {

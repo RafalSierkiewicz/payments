@@ -1,18 +1,18 @@
 import React from 'react';
-import { Button, Col, Container, ListGroup, Row } from 'react-bootstrap';
+import { Col, Container, ListGroup, Row } from 'react-bootstrap';
 import { ExpensesSchemaForm } from './forms/ExpenseSettingSchemaForm';
 import * as _ from 'lodash';
 import { IExpenseSchema } from '../../models/expenses';
 import { useDispatch, useSelector } from 'react-redux';
 import { getExpensesSchemas } from '../../selectors';
 import { actions } from 'actions';
-import { IconButton, RemoveButton } from '../common/IconButton';
-import { ImBin2, IoSettingsOutline } from 'react-icons/all';
-import { Link, useHistory } from 'react-router-dom';
+import { RemoveButton } from '../common/IconButton';
+import { IoSettingsOutline } from 'react-icons/all';
+import { useHistory } from 'react-router-dom';
 import { LinkIconButton } from '../common/LinkIconButton';
 
 const ExpensesSchemasPage: React.FC = React.memo(() => {
-  const schemas = useSelector(getExpensesSchemas);
+  const schemas = _.orderBy(useSelector(getExpensesSchemas), (s: IExpenseSchema) => s.createdAt, ['desc']);
   const dispatch = useDispatch();
   const history = useHistory();
   return (

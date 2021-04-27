@@ -24,8 +24,8 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
   private val configF: F[AppConfig] = {
     import pureconfig.generic.auto._
     F.delay({
-      val db       = ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
-      val auth     =
+      val db = ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("db").loadOrThrow[DbConfig]
+      val auth =
         ConfigSource.fromConfig(ConfigFactory.load(this.getClass.getClassLoader)).at("auth").loadOrThrow[AuthConfig]
       val expenses =
         ConfigSource
@@ -40,10 +40,10 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
 
   val run: F[ExitCode] = {
     (for {
-      config     <- Resource.liftF(configF).evalTap(conf => runMigrations(conf.dbConfig))
-      blocker    <- Blocker[F]
+      config <- Resource.liftF(configF).evalTap(conf => runMigrations(conf.dbConfig))
+      blocker <- Blocker[F]
       transactor <- transactorResource(config.dbConfig, blocker)
-      _          <- BlazeServerBuilder[F](global)
+      _ <- BlazeServerBuilder[F](global)
         .bindHttp(config.expenses.port, config.expenses.host)
         .withIdleTimeout(Duration.Inf)
         .withHttpApp(routes(PaymentsModule.make[F](transactor, config, blocker)).orNotFound)
@@ -74,8 +74,8 @@ class PaymentsApp[F[_]: Parallel: ContextShift: Timer](implicit F: ConcurrentEff
       "api/expenses" -> module.expenseController.routes,
       "api/expenses" -> module.expenseSchemaController.routes,
       "api/expenses" -> module.expenseTypesController.routes,
-      "api/users"    -> module.userController.routes,
-      "/"            -> module.homeController.routes
+      "api/users" -> module.userController.routes,
+      "/" -> module.homeController.routes
     )
   }
 }
